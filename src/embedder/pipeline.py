@@ -109,26 +109,31 @@ def run(db_path: Path = DB_PATH, chroma_path: Path = CHROMA_PATH) -> None:
             except Exception as e2:
                 # Fall back to one doc at a time, each with its own retry.
                 log.warning(f"batch {i//BATCH_SIZE} still failing ({e2}), falling back to one-at-a-time")
-                embeddings = []
-                for d in docs:
+                keep = []  # (id, embedding, doc, metadata) for successful items
+                for chunk_id, d, meta in zip(ids, docs, metadatas):
                     for attempt in range(3):
                         try:
-                            embeddings.append(
-                                ollama.embed(model=EMBED_MODEL, input=[d])["embeddings"][0]
-                            )
+                            emb = ollama.embed(model=EMBED_MODEL, input=[d])["embeddings"][0]
+                            keep.append((chunk_id, emb, d, meta))
                             break
                         except Exception as e3:
+                            if "input length exceeds context length" in str(e3):
+                                log.warning(f"skipping chunk {chunk_id} ({len(d)} chars): context length exceeded")
+                                break
                             if attempt == 2:
                                 raise
                             log.warning(f"fallback retry {attempt+1} failed ({e3}), waiting 10s")
                             time.sleep(10)
+                ids, embeddings, docs, metadatas = zip(*keep) if keep else ([], [], [], [])
+                ids, embeddings, docs, metadatas = list(ids), list(embeddings), list(docs), list(metadatas)
 
-        collection.upsert(
-            ids=ids,
-            embeddings=embeddings,
-            documents=docs,
-            metadatas=metadatas,
-        )
+        if ids:
+            collection.upsert(
+                ids=ids,
+                embeddings=embeddings,
+                documents=docs,
+                metadatas=metadatas,
+            )
 
         total += len(batch)
         if total % 100 == 0 or total == len(all_chunks):
