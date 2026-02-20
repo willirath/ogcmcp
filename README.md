@@ -6,13 +6,13 @@ and roadmap.
 
 ## Status
 
-Working through the build roadmap (`plans/roadmap.md`). M0–M1 complete.
+Working through the build roadmap (`plans/roadmap.md`). M0–M2 complete.
 
 | Milestone | What | Status |
 |---|---|---|
 | M0 | Environment, MITgcm submodule, embeddings server | ✓ |
-| M1 | DuckDB code graph (2433 subroutines indexed) | ✓ |
-| M2 | ChromaDB semantic index | — |
+| M1 | DuckDB code graph (2505 subroutines indexed) | ✓ |
+| M2 | ChromaDB semantic index | ✓ |
 | M3 | Core query tools | — |
 | M4 | MCP server | — |
 | M5 | Domain knowledge layer | — |
@@ -40,9 +40,11 @@ pixi run test
 ```
 .
 ├── src/
-│   └── indexer/       Fortran source parser and DuckDB pipeline
+│   ├── indexer/       Fortran source parser and DuckDB pipeline
+│   └── embedder/      ChromaDB embedding pipeline
 ├── tests/
-│   └── indexer/       Tests for the indexer
+│   ├── indexer/       Tests for the indexer
+│   └── embedder/      Tests for the embedder
 ├── docs/              Implementation notes (one file per component)
 ├── plans/             Design sketch and milestone roadmap
 ├── MITgcm/            MITgcm source (git submodule, pinned)
@@ -59,3 +61,6 @@ pixi run test
 | `docs/embeddings.md` | ollama Docker setup, embedding model |
 | `docs/parsing.md` | Fortran extraction approach, fixed-form specifics |
 | `docs/duckdb.md` | Code graph schema, example queries |
+| `docs/indexer.md` | Indexer modules, data flow, extension guide |
+| `docs/testing.md` | Test structure, conventions, adversarial tests |
+| `docs/chromadb.md` | Embedding pipeline, chunking, query examples |

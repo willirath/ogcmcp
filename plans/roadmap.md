@@ -32,11 +32,11 @@ Parse MITgcm source into the code graph.
 
 Embed subroutines and load into the vector store.
 
-- [ ] Embed each subroutine with `nomic-embed-text` via Ollama
-- [ ] Write to ChromaDB with metadata (file, package, subroutine name)
-- [ ] `docs/chromadb.md`
+- [x] Embed each subroutine with `nomic-embed-text` via Ollama (chunked, MAX_CHARS=4000, OVERLAP=200)
+- [x] Write to ChromaDB with metadata (file, package, subroutine name, db_id, chunk index)
+- [x] `docs/chromadb.md`
 
-**Done when:** A natural-language query for `"non-hydrostatic pressure solve"` returns relevant subroutines.
+**Done when:** A natural-language query for `"non-hydrostatic pressure solve"` returns relevant subroutines. ✓
 
 ---
 

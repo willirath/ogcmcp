@@ -2,14 +2,19 @@
 
 ## Overview
 
-The test suite covers `src/indexer/extract.py`. It is split into two files:
+The test suite covers two components:
 
-- `tests/indexer/test_extract.py` — unit tests for normal extraction behaviour
-- `tests/indexer/test_extract_adversarial.py` — edge cases and bug
-  regression tests
+```
+tests/
+├── indexer/
+│   ├── test_extract.py              unit tests for normal extraction behaviour
+│   └── test_extract_adversarial.py  edge cases and bug regression tests
+└── embedder/
+    └── test_pipeline.py             chunking logic tests
+```
 
-All tests use synthetic Fortran snippets written inline as string constants.
-No real MITgcm source files are required.
+All tests use synthetic data (inline string constants or synthetic strings).
+No real MITgcm source files, DuckDB instance, or ollama server are required.
 
 ## Why synthetic Fortran snippets
 
@@ -93,6 +98,8 @@ fail, not by running the extractor and seeing what happens. The process is:
 4. If the extractor fails, fix the extractor and keep the test as a
    regression guard.
 
+Two bugs were found this way during initial development:
+
 ### Bug B1 — `DIAGNOSTICS_FILL` split across continuation lines
 
 **Symptom.** When the array name and quoted field string appear on separate
@@ -134,16 +141,41 @@ declarations.
 
 **Test.** Edge case 16 (`test_call_inline_if_extracted`).
 
+## `test_pipeline.py` — embedder chunking tests
+
+Covers `_chunk_text` and `_doc_chunks` from `src/embedder/pipeline.py`.
+All tests use synthetic strings — no DuckDB or ollama required.
+
+| Test | What it verifies |
+|---|---|
+| Short text not split | text ≤ MAX_CHARS → single chunk, unchanged |
+| Exact MAX_CHARS not split | boundary case: one chunk |
+| Long text splits | text > MAX_CHARS → multiple chunks |
+| Each chunk at most MAX_CHARS | no chunk exceeds the size limit |
+| Overlap shared between adjacent chunks | `chunk[i][-OVERLAP:] == chunk[i+1][:OVERLAP]` |
+| No-overlap joins to original | `"".join(chunks) == text` when `overlap=0` |
+| Empty string → one empty chunk | edge case: empty input |
+| All positions covered | every char position in original appears in ≥ 1 chunk |
+| Chunk ids unique | no id collisions across chunks of one subroutine |
+| Ids include db_id | ids are of the form `"{db_id}_{i}"` |
+| All chunks carry same db_id | metadata consistent across chunks |
+| Chunk index sequential | `chunk_index` is 0, 1, 2, … |
+| n_chunks consistent | all chunks agree on the total count |
+| Doc text contains header | each doc starts with `SUBROUTINE name [pkg]` |
+| Header in every chunk | header present even in non-first chunks |
+
 ## Running tests
 
 ```sh
 pixi run test
 ```
 
-This runs `pytest tests/ -v`. No MITgcm source tree or DuckDB file is
-required.
+This runs `pytest tests/ -v`. No MITgcm source tree, DuckDB file, or
+ollama server is required.
 
 ## Conventions for adding new tests
+
+### Indexer tests
 
 - Add normal-behaviour tests to `test_extract.py`; add edge-case and
   regression tests to `test_extract_adversarial.py`.
@@ -153,11 +185,16 @@ required.
 - Prefix the constant with a comment block (matching the style in
   `test_extract_adversarial.py`) that names the MITgcm file or pattern being
   exercised and states what failure mode the test probes.
-- Each test function should test one assertion. Prefer two small test
-  functions over one function with two asserts.
 - Use `_write(content)` for `.F` (default) and `_write(content, suffix=".F90")`
   for free-form. Do not reuse the same temp file across tests — each call to
   `_write` creates a new file.
 - If you are documenting a known limitation rather than a bug, leave the test
   passing (asserting the imprecise-but-not-crashing behaviour) and add a
   docstring explaining what "correct" would mean and why it is not implemented.
+
+### General conventions
+
+- Each test function should test one assertion. Prefer two small test
+  functions over one function with two asserts.
+- Tests must not require external services (DuckDB, ChromaDB, ollama).
+  Use synthetic fixtures or mock data.
