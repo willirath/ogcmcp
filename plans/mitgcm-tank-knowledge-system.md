@@ -255,7 +255,7 @@ Single machine (MacBook or small VM) is sufficient.
 | LLM | Claude API (tool use + extended thinking) |
 
 ```
-pixi add fastapi chromadb duckdb tree-sitter ollama anthropic
+pixi add fastapi chromadb duckdb tree-sitter ollama
 ```
 
 Exposed as an MCP server so Claude Desktop / Claude Code can connect directly.
