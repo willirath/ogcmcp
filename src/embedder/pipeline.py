@@ -1,5 +1,6 @@
 """Embedding pipeline: read subroutines from DuckDB, embed via ollama, write to ChromaDB."""
 
+import time
 from pathlib import Path
 
 import ollama
@@ -86,8 +87,19 @@ def run(db_path: Path = DB_PATH, chroma_path: Path = CHROMA_PATH) -> None:
         docs = [c[1] for c in batch]
         metadatas = [c[2] for c in batch]
 
-        response = ollama.embed(model=EMBED_MODEL, input=docs)
-        embeddings = response["embeddings"]
+        try:
+            embeddings = ollama.embed(model=EMBED_MODEL, input=docs)["embeddings"]
+        except Exception:
+            # Retry once after a short pause (handles transient server errors).
+            # If that also fails, fall back to one doc at a time.
+            time.sleep(2)
+            try:
+                embeddings = ollama.embed(model=EMBED_MODEL, input=docs)["embeddings"]
+            except Exception:
+                embeddings = [
+                    ollama.embed(model=EMBED_MODEL, input=[d])["embeddings"][0]
+                    for d in docs
+                ]
 
         collection.upsert(
             ids=ids,

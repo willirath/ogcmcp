@@ -35,6 +35,17 @@ Key constants:
 | `OVERLAP` | 200 | chars shared between adjacent chunks |
 | `BATCH_SIZE` | 10 | chunks sent to ollama per request |
 
+### Error handling
+
+Each batch embed is wrapped in a two-level fallback:
+
+1. **Retry once** after a 2-second pause — handles transient server errors
+   (observed: ollama returning HTTP 400 immediately after a cold start or
+   container restart).
+2. **One-at-a-time fallback** — if the retry also fails, each document in the
+   batch is embedded individually. This eliminates any risk of a combined
+   batch exceeding the model's context window.
+
 ## Chunking
 
 `nomic-embed-text` has a context window of approximately 2000 tokens, which
