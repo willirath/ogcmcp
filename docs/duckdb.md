@@ -2,7 +2,7 @@
 
 ## Overview
 
-The code graph is a single DuckDB file (`index.duckdb`) containing structured
+The code graph is a single DuckDB file (`data/index.duckdb`) containing structured
 information extracted from MITgcm's Fortran source. It is the primary store
 for code-navigation queries.
 
@@ -65,8 +65,8 @@ WHERE s.name = 'DIAGS_RHO_G';
 ## Rebuilding
 
 ```sh
-rm -f index.duckdb
-pixi run python -m src.indexer.pipeline
+rm -f data/index.duckdb
+pixi run index
 ```
 
 Re-run after updating the MITgcm submodule.

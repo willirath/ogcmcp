@@ -3,7 +3,7 @@
 import duckdb
 from pathlib import Path
 
-DB_PATH = Path("index.duckdb")
+DB_PATH = Path("data/index.duckdb")
 
 DDL = """
 CREATE TABLE IF NOT EXISTS metadata (
