@@ -10,12 +10,12 @@ flowchart LR
 
     subgraph index ["pixi run index"]
         ts["tree-sitter Fortran parser"]
-        duck[("DuckDB code graph\ndata/index.duckdb")]
+        duck[("DuckDB code graph (data/index.duckdb)")]
     end
 
     subgraph embed ["pixi run embed"]
         ollama["Ollama / nomic-embed-text (Docker)"]
-        chroma[("ChromaDB semantic index\ndata/chroma/")]
+        chroma[("ChromaDB semantic index (data/chroma/)")]
     end
 
     src --> ts --> duck
