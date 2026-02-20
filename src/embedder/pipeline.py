@@ -1,9 +1,17 @@
 """Embedding pipeline: read subroutines from DuckDB, embed via ollama, write to ChromaDB."""
 
+import logging
 import time
 from pathlib import Path
 
 import ollama
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+log = logging.getLogger(__name__)
 
 from ..indexer.schema import DB_PATH, connect as duckdb_connect
 from .store import CHROMA_PATH, get_collection
@@ -71,14 +79,14 @@ def run(db_path: Path = DB_PATH, chroma_path: Path = CHROMA_PATH) -> None:
         "SELECT id, name, file, package, source_text FROM subroutines ORDER BY id"
     ).fetchall()
     con.close()
-    print(f"Loaded {len(rows)} subroutines from DuckDB")
+    log.info(f"Loaded {len(rows)} subroutines from DuckDB")
 
     collection = get_collection(chroma_path)
 
     all_chunks = []
     for r in rows:
         all_chunks.extend(_doc_chunks(r[0], r[1], r[2], r[3], r[4]))
-    print(f"Generated {len(all_chunks)} chunks from {len(rows)} subroutines")
+    log.info(f"Generated {len(all_chunks)} chunks from {len(rows)} subroutines")
 
     total = 0
     for i in range(0, len(all_chunks), BATCH_SIZE):
@@ -92,13 +100,13 @@ def run(db_path: Path = DB_PATH, chroma_path: Path = CHROMA_PATH) -> None:
         except Exception as e:
             # Retry after a pause — 400s observed under server load (contention
             # with concurrent MCP calls), not genuine content-length overflows.
-            print(f"  [retry] batch {i//BATCH_SIZE} failed ({e}), waiting 10s")
+            log.warning(f"batch {i//BATCH_SIZE} failed ({e}), retrying in 10s")
             time.sleep(10)
             try:
                 embeddings = ollama.embed(model=EMBED_MODEL, input=docs)["embeddings"]
             except Exception as e2:
                 # Fall back to one doc at a time, each with its own retry.
-                print(f"  [fallback] batch {i//BATCH_SIZE} still failing ({e2}), one-at-a-time")
+                log.warning(f"batch {i//BATCH_SIZE} still failing ({e2}), falling back to one-at-a-time")
                 embeddings = []
                 for d in docs:
                     for attempt in range(3):
@@ -110,7 +118,7 @@ def run(db_path: Path = DB_PATH, chroma_path: Path = CHROMA_PATH) -> None:
                         except Exception as e3:
                             if attempt == 2:
                                 raise
-                            print(f"  [fallback retry {attempt+1}] {e3}, waiting 10s")
+                            log.warning(f"fallback retry {attempt+1} failed ({e3}), waiting 10s")
                             time.sleep(10)
 
         collection.upsert(
@@ -122,9 +130,9 @@ def run(db_path: Path = DB_PATH, chroma_path: Path = CHROMA_PATH) -> None:
 
         total += len(batch)
         if total % 100 == 0 or total == len(all_chunks):
-            print(f"  Embedded {total}/{len(all_chunks)}")
+            log.info(f"  Embedded {total}/{len(all_chunks)}")
 
-    print(f"\nDone. {collection.count()} chunks ({len(rows)} subroutines).")
+    log.info(f"Done. {collection.count()} chunks ({len(rows)} subroutines).")
 
 
 if __name__ == "__main__":
