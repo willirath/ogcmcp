@@ -7,6 +7,7 @@ Set up the project environment and pin the MITgcm source.
 - [x] `pixi.toml` with all dependencies (`fastapi`, `chromadb>=1.0`, `duckdb`, `tree-sitter` via PyPI; `ollama`, `python=3.13` via conda-forge)
 - [x] MITgcm added as a git submodule (pinned at `decd05a`)
 - [x] `ollama pull nomic-embed-text` confirmed working (Docker: `docker compose up -d`, then `docker compose exec ollama ollama pull nomic-embed-text`)
+- [x] `docs/embeddings.md`
 
 **Done when:** `pixi run python -c "import duckdb, chromadb, ollama, tree_sitter"` succeeds. ✓
 
@@ -19,6 +20,7 @@ Parse MITgcm source into the code graph.
 - [ ] CPP pre-pass for `.F` files
 - [ ] `tree-sitter-fortran` parsing of `.F` and `.F90`
 - [ ] Populate `metadata`, `subroutines`, `calls`, `namelist_refs`, `diagnostics_fills`, `cpp_guards`, `package_options`
+- [ ] `docs/parsing.md` and `docs/duckdb.md`
 
 **Done when:** SQL query `SELECT * FROM namelist_refs WHERE param_name = 'cg3dMaxIter'` returns results.
 
@@ -30,6 +32,7 @@ Embed subroutines and load into the vector store.
 
 - [ ] Embed each subroutine with `nomic-embed-text` via Ollama
 - [ ] Write to ChromaDB with metadata (file, package, subroutine name)
+- [ ] `docs/chromadb.md`
 
 **Done when:** A natural-language query for `"non-hydrostatic pressure solve"` returns relevant subroutines.
 
@@ -46,6 +49,7 @@ Implement code-navigation tools as plain Python functions (no server yet).
 - [ ] `diagnostics_fill_to_source(field_name)`
 - [ ] `get_cpp_requirements(subroutine_name)`
 - [ ] `get_package_flags(package_name)`
+- [ ] `docs/tools.md`
 
 **Done when:** Can answer "what code reads `cg3dMaxIter`, and what CPP flag guards it?" from a Python shell.
 
@@ -57,6 +61,7 @@ Wrap tools and expose them over MCP.
 
 - [ ] FastAPI + `mcp` server wiring all M3 tools
 - [ ] Confirmed connectable from Claude Code / Claude Desktop
+- [ ] `docs/mcp-server.md`
 
 **Done when:** A live LLM session can call `get_subroutine("cg3d")` and get source back.
 
@@ -70,6 +75,7 @@ First version of the tank-specific knowledge layer.
 - [ ] `check_scales` — computes Ro, Ek, Bu, δ, CFL; flags issues
 - [ ] `lookup_gotcha` — queryable catalogue, seeded from MITgcm rotating tank tutorial and docs
 - [ ] `suggest_experiment_config` — skeleton configs for at least rotating convection and Eady setups
+- [ ] `docs/domain-knowledge.md`
 
 **Done when:** Given tank radius, depth, and rotation rate, the system returns a draft namelist and a scaling summary with any flags.
 
