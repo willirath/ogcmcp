@@ -7,6 +7,8 @@ Set up the project environment and pin the MITgcm source.
 - [x] `pixi.toml` with all dependencies (`fastapi`, `chromadb>=1.0`, `duckdb`, `tree-sitter` via PyPI; `ollama`, `python=3.13` via conda-forge)
 - [x] MITgcm added as a git submodule (pinned at `decd05a`)
 - [x] `ollama pull nomic-embed-text` confirmed working (Docker: `docker compose up -d`, then `docker compose exec ollama ollama pull nomic-embed-text`)
+- [x] `docs/environment.md`
+- [x] `docs/mitgcm-source.md`
 - [x] `docs/embeddings.md`
 
 **Done when:** `pixi run python -c "import duckdb, chromadb, ollama, tree_sitter"` succeeds. ✓
