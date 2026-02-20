@@ -28,6 +28,7 @@ data/                generated artifacts (gitignored)
 - One file per component in `docs/`
 - Use proper markdown headings, not bold text as pseudo-headings
 - Docs should be self-contained — no references to other design documents the reader may not have
+- Directory listings use `tree`-style output (with `└──`, `├──`, `│` characters), not flat indented lists
 
 ## Planning and roadmap
 

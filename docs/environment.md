@@ -31,4 +31,12 @@ docker compose up -d    # start
 docker compose down     # stop
 ```
 
+The container is pinned to CPU cores `0-5` via `cpuset: "0-5"` in `compose.yml`,
+leaving cores `6-11` free for interactive work. To adjust for a different machine,
+edit the `cpuset` line in `compose.yml` and apply to any running container:
+
+```sh
+docker update --cpuset-cpus="0-5" 2026-dtg-ollama-1
+```
+
 See `docs/embeddings.md` for details.

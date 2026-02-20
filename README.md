@@ -38,15 +38,16 @@ pixi run test
 ## Layout
 
 ```
-src/
-  indexer/       Fortran source parser and DuckDB pipeline
-tests/
-  indexer/       Tests for the indexer
-docs/            Implementation notes (one file per component)
-plans/           Design sketch and milestone roadmap
-MITgcm/          MITgcm source (git submodule, pinned)
-compose.yml      Docker service for the ollama embedding server
-data/            Generated artifacts — gitignored (index.duckdb, chroma/)
+.
+├── src/
+│   └── indexer/       Fortran source parser and DuckDB pipeline
+├── tests/
+│   └── indexer/       Tests for the indexer
+├── docs/              Implementation notes (one file per component)
+├── plans/             Design sketch and milestone roadmap
+├── MITgcm/            MITgcm source (git submodule, pinned)
+├── compose.yml        Docker service for the ollama embedding server
+└── data/              Generated artifacts — gitignored (index.duckdb, chroma/)
 ```
 
 ## Docs

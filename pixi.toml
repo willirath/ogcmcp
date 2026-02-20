@@ -8,6 +8,7 @@ version = "0.1.0"
 [tasks]
 test = "pytest tests/ -v"
 index = "python -m src.indexer.pipeline"
+embed = "nice -n 10 python -m src.embedder.pipeline"
 
 [dependencies]
 python = "3.13.*"

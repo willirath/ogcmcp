@@ -1,6 +1,7 @@
 services:
   ollama:
     image: ollama/ollama
+    cpuset: "0-5"
     ports:
       - "11434:11434"
     volumes:
