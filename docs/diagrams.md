@@ -29,6 +29,47 @@ subroutine's source, enabling natural-language search.
 
 ---
 
+## Database roles
+
+What each index stores and which tools query it.
+
+```mermaid
+flowchart TB
+    subgraph duck ["DuckDB — structural index"]
+        d1["subroutines (name, file, package, source_text)"]
+        d2["calls (caller → callee)"]
+        d3["namelist_refs (param, group → subroutine)"]
+        d4["cpp_guards (flag → subroutine)"]
+        d5["diagnostics_fills (field → subroutine)"]
+        d6["package_options (package → CPP flags)"]
+    end
+
+    subgraph chroma ["ChromaDB — semantic index"]
+        c1["4910 overlapping 4000-char chunks"]
+        c2["nomic-embed-text vectors (768-dim)"]
+        c3["metadata: db_id, chunk_index, name, package"]
+    end
+
+    subgraph tools ["tools.py"]
+        t1["get_subroutine / get_source"]
+        t2["get_callers / get_callees"]
+        t3["namelist_to_code"]
+        t4["get_cpp_requirements"]
+        t5["diagnostics_fill_to_source"]
+        t6["get_package_flags"]
+        t7["search_code"]
+    end
+
+    t1 & t2 & t3 & t4 & t5 & t6 --> duck
+    t7 --> chroma
+    t7 --> duck
+```
+
+`search_code` queries ChromaDB for the nearest-neighbour chunks, then joins
+back to DuckDB on `db_id` to return full subroutine metadata.
+
+---
+
 ## Query-time flow
 
 How a question from a user reaches the indices and returns an answer.
