@@ -6,6 +6,8 @@ platforms = ["osx-arm64"]
 version = "0.1.0"
 
 [tasks]
+test = "pytest tests/ -v"
+index = "python -m src.indexer.pipeline"
 
 [dependencies]
 python = "3.13.*"
@@ -17,3 +19,4 @@ ollama = ">=0.6.1, <0.7"
 fastapi = ">=0.129.0, <0.130"
 tree-sitter = ">=0.25.2, <0.26"
 tree-sitter-fortran = ">=0.5.1, <0.6"
+pytest = ">=9.0.2, <10"

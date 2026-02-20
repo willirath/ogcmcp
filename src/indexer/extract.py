@@ -29,7 +29,7 @@ class SubroutineRecord:
 # Regex patterns
 # ---------------------------------------------------------------------------
 
-RE_SUB_START = re.compile(r'^\s{1,9}SUBROUTINE\s+(\w+)', re.IGNORECASE)
+RE_SUB_START = re.compile(r'^\s*SUBROUTINE\s+(\w+)', re.IGNORECASE)
 
 # Matches bare END or END SUBROUTINE [name], but not END DO / END IF / etc.
 _END_KEYWORDS = r'DO|IF|WHERE|FORALL|SELECT|TYPE|MODULE|PROGRAM|INTERFACE|BLOCK|ASSOCIATE|CRITICAL|ENUM|FUNCTION'
@@ -45,7 +45,7 @@ RE_END_BLOCK = re.compile(
 RE_CALL = re.compile(r'^\s+CALL\s+(\w+)', re.IGNORECASE)
 RE_NAMELIST_START = re.compile(r'\bNAMELIST\s*/(\w+)/', re.IGNORECASE)
 RE_DIAG_FILL = re.compile(
-    r"CALL\s+DIAGNOSTICS_FILL\s*\(\s*(\w+)\s*,\s*'(\w+)'", re.IGNORECASE
+    r"CALL\s+DIAGNOSTICS_FILL\s*\(\s*(\w+)\s*,\s*'([^']+)'", re.IGNORECASE
 )
 
 RE_IFDEF  = re.compile(r'^#ifdef\s+(\w+)',  re.IGNORECASE)
