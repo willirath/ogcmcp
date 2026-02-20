@@ -21,7 +21,8 @@ Parse MITgcm source into the code graph.
 
 - [x] Regex-based extraction from raw `.F` and `.F90` (no CPP pre-pass needed; tree-sitter too fragile for MITgcm fixed-form)
 - [x] Populate `metadata`, `subroutines`, `calls`, `namelist_refs`, `diagnostics_fills`, `cpp_guards` (2433 subroutines indexed)
-- [x] `docs/parsing.md` and `docs/duckdb.md`
+- [x] 51 tests (unit + adversarial); two bugs found and fixed
+- [x] `docs/parsing.md`, `docs/duckdb.md`, `docs/indexer.md`, `docs/testing.md`
 
 **Done when:** SQL query `SELECT * FROM namelist_refs WHERE param_name = 'cg3dMaxIters'` returns results. ✓
 
