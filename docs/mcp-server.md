@@ -57,12 +57,31 @@ Returns up to `top_k` subroutines ranked by cosine similarity:
 get_subroutine_tool(name: str) -> dict | None
 ```
 
-Full metadata and source text for one subroutine. Returns `None` if not found.
+Metadata for one subroutine — no source text. Returns `None` if not found.
 
 ```python
 {"id": 42, "name": "CG3D", "file": "...", "package": "model",
- "line_start": 1, "line_end": 350, "source_text": "SUBROUTINE CG3D\n..."}
+ "line_start": 1, "line_end": 350}
 ```
+
+Use `line_end - line_start` to gauge size before fetching source.
+
+### `get_source_tool`
+
+```
+get_source_tool(name: str, offset: int = 0, limit: int = 100) -> dict | None
+```
+
+Paginated source lines for a subroutine. `offset` is 0-based within the
+subroutine source; `limit` caps lines returned. Returns `None` if not found.
+
+```python
+{"name": "CG3D", "total_lines": 532, "offset": 0,
+ "lines": ["      SUBROUTINE CG3D(", ...]}
+```
+
+Large subroutines (e.g. `INI_PARMS` at ~1500 lines) must be read in pages
+to stay within Claude Code's tool-result token limit.
 
 ### `get_callers_tool`
 
@@ -136,7 +155,11 @@ CPP flags defined by a package, with descriptions. Empty list if not found.
 
 ```
 > get_subroutine_tool("cg3d")
-{"id": 42, "name": "CG3D", "file": "model/src/cg3d.F", ...}
+{"id": 42, "name": "CG3D", "file": "model/src/cg3d.F",
+ "line_start": 13, "line_end": 545}
+
+> get_source_tool("cg3d", offset=0, limit=20)
+{"name": "CG3D", "total_lines": 532, "offset": 0, "lines": [...]}
 
 > namelist_to_code_tool("cg3dMaxIters")
 [{"name": "CG3D", "namelist_group": "PARM03", ...}]

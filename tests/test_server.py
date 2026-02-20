@@ -12,6 +12,7 @@ from src.server import mcp
 EXPECTED_TOOLS = {
     "search_code_tool",
     "get_subroutine_tool",
+    "get_source_tool",
     "get_callers_tool",
     "get_callees_tool",
     "namelist_to_code_tool",

@@ -29,11 +29,37 @@ def search_code_tool(query: str, top_k: int = 5) -> list[dict]:
 
 @mcp.tool()
 def get_subroutine_tool(name: str) -> dict | None:
-    """Return metadata and full source text for a subroutine by name.
+    """Return metadata for a subroutine by name (no source text).
 
+    Returns id, name, file, package, line_start, line_end.
     Name lookup is case-insensitive. Returns None if not found.
+    Use get_source_tool to retrieve the actual source lines.
     """
-    return get_subroutine(name)
+    result = get_subroutine(name)
+    if result is None:
+        return None
+    result.pop("source_text", None)
+    return result
+
+
+@mcp.tool()
+def get_source_tool(name: str, offset: int = 0, limit: int = 100) -> dict | None:
+    """Return paginated source lines for a subroutine.
+
+    offset: first line to return (0-based within the subroutine source).
+    limit: maximum number of lines to return (default 100).
+
+    Returns {name, total_lines, offset, lines: [...]}. Lines are returned as
+    a list of strings without trailing newlines. Returns None if not found.
+    Use get_subroutine_tool first to see total line count (line_end - line_start).
+    """
+    result = get_subroutine(name)
+    if result is None:
+        return None
+    all_lines = result["source_text"].splitlines()
+    total = len(all_lines)
+    page = all_lines[offset : offset + limit]
+    return {"name": result["name"], "total_lines": total, "offset": offset, "lines": page}
 
 
 @mcp.tool()
