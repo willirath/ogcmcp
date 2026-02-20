@@ -123,6 +123,7 @@ def _extract_namelist_params(lines: list[str], start: int, fixed_form: bool) -> 
 # ---------------------------------------------------------------------------
 
 RE_OPTIONS_DEFINE = re.compile(r'^#define\s+(\w+)', re.IGNORECASE)
+RE_OPTIONS_UNDEF  = re.compile(r'^#undef\b',        re.IGNORECASE)
 RE_OPTIONS_COMMENT = re.compile(r'^[Cc]\s*(.*)')
 
 
@@ -147,12 +148,21 @@ def extract_package_options(path: Path) -> list[tuple[str, str, str]]:
     for line in lines:
         stripped = line.strip()
         if cm := RE_OPTIONS_COMMENT.match(stripped):
-            last_comment = cm.group(1).strip().lstrip('o').strip().lstrip('>').strip()
+            text = cm.group(1).strip()
+            # Skip commented-out #define lines (e.g. "c#define FLAG")
+            if text.startswith('#'):
+                continue
+            # Strip bullet 'o ' prefix and '>>>' arrow prefix
+            text = re.sub(r'^o\s+', '', text)
+            text = re.sub(r'^>+\s*', '', text)
+            last_comment = text
         elif m := RE_OPTIONS_DEFINE.match(stripped):
             flag = m.group(1)
-            if flag != header_guard:
+            if flag.upper() != header_guard:  # case-insensitive guard check
                 results.append((package, flag, last_comment))
             last_comment = ''
+        elif RE_OPTIONS_UNDEF.match(stripped):
+            last_comment = ''  # #undef resets; don't bleed into the next #define
         elif stripped and not stripped.startswith('#'):
             last_comment = ''
 

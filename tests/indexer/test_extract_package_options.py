@@ -168,7 +168,6 @@ C Use Bolus advection
 # Adversarial tests — known bugs, marked xfail
 # ---------------------------------------------------------------------------
 
-@pytest.mark.xfail(reason="Bug: lstrip('o') truncates descriptions starting with 'o'")
 def test_description_starting_with_o_not_mangled(tmp_path):
     """lstrip('o') eats the leading 'o' from words like 'overflow', 'output', 'options'."""
     f = _write(tmp_path, """\
@@ -195,7 +194,6 @@ C o obsolete flag kept for back-compat
     assert results["ALLOW_OLD_THING"] == "obsolete flag kept for back-compat"
 
 
-@pytest.mark.xfail(reason="Bug: comment above #undef bleeds to the next #define")
 def test_comment_above_undef_does_not_bleed(tmp_path):
     """A comment before a #undef should not be attached to the following #define."""
     f = _write(tmp_path, """\
@@ -210,7 +208,6 @@ C Description of the disabled flag
     assert results["ALLOW_OTHER"] == ""
 
 
-@pytest.mark.xfail(reason="Bug: commented-out 'c#define' line is treated as a comment, polluting next flag's description")
 def test_commented_out_define_not_treated_as_description(tmp_path):
     """Lines like 'c#define FLAG' (disabled via comment) should not pollute last_comment."""
     f = _write(tmp_path, """\
@@ -225,7 +222,6 @@ c#define ALLOW_OPTIONAL
     assert results["ALLOW_REAL"] == "Note: comment out the #define below to enable from command line"
 
 
-@pytest.mark.xfail(reason="Bug: header guard not skipped when filename uses lowercase")
 def test_lowercase_filename_header_guard_excluded(tmp_path):
     """Header guard '#define mypkg_options_h' should be excluded (case-insensitive match)."""
     f = _write(tmp_path, """\
