@@ -4,3 +4,6 @@
 
 # ollama model data
 ollama_data/
+
+# generated indexes
+index.duckdb

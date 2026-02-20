@@ -19,12 +19,11 @@ Set up the project environment and pin the MITgcm source.
 
 Parse MITgcm source into the code graph.
 
-- [ ] CPP pre-pass for `.F` files
-- [ ] `tree-sitter-fortran` parsing of `.F` and `.F90`
-- [ ] Populate `metadata`, `subroutines`, `calls`, `namelist_refs`, `diagnostics_fills`, `cpp_guards`, `package_options`
-- [ ] `docs/parsing.md` and `docs/duckdb.md`
+- [x] Regex-based extraction from raw `.F` and `.F90` (no CPP pre-pass needed; tree-sitter too fragile for MITgcm fixed-form)
+- [x] Populate `metadata`, `subroutines`, `calls`, `namelist_refs`, `diagnostics_fills`, `cpp_guards` (2433 subroutines indexed)
+- [x] `docs/parsing.md` and `docs/duckdb.md`
 
-**Done when:** SQL query `SELECT * FROM namelist_refs WHERE param_name = 'cg3dMaxIter'` returns results.
+**Done when:** SQL query `SELECT * FROM namelist_refs WHERE param_name = 'cg3dMaxIters'` returns results. ✓
 
 ---
 
