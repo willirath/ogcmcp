@@ -122,6 +122,43 @@ def _extract_namelist_params(lines: list[str], start: int, fixed_form: bool) -> 
 # Main extraction
 # ---------------------------------------------------------------------------
 
+RE_OPTIONS_DEFINE = re.compile(r'^#define\s+(\w+)', re.IGNORECASE)
+RE_OPTIONS_COMMENT = re.compile(r'^[Cc]\s*(.*)')
+
+
+def extract_package_options(path: Path) -> list[tuple[str, str, str]]:
+    """Extract (package_name, cpp_flag, description) from a *_OPTIONS.h file.
+
+    The package name is taken from the directory immediately under pkg/.
+    Description is the text of the nearest preceding C-style comment line,
+    stripped of leading C/c and whitespace. Flags defined via #undef are
+    ignored. The header guard #define (matching the filename) is skipped.
+    """
+    package = _package_from_path(path)
+    header_guard = path.name.upper().replace('.', '_').replace('-', '_')
+
+    try:
+        lines = path.read_text(errors='replace').splitlines()
+    except OSError:
+        return []
+
+    results: list[tuple[str, str, str]] = []
+    last_comment = ''
+    for line in lines:
+        stripped = line.strip()
+        if cm := RE_OPTIONS_COMMENT.match(stripped):
+            last_comment = cm.group(1).strip().lstrip('o').strip().lstrip('>').strip()
+        elif m := RE_OPTIONS_DEFINE.match(stripped):
+            flag = m.group(1)
+            if flag != header_guard:
+                results.append((package, flag, last_comment))
+            last_comment = ''
+        elif stripped and not stripped.startswith('#'):
+            last_comment = ''
+
+    return results
+
+
 def extract_file(path: Path) -> list[SubroutineRecord]:
     """Extract all subroutine records from a Fortran source file."""
     fixed_form = path.suffix == '.F'

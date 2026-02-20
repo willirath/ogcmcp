@@ -4,7 +4,7 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
-from .extract import extract_file
+from .extract import extract_file, extract_package_options
 from .schema import connect
 
 MITGCM_ROOT = Path("MITgcm")
@@ -29,6 +29,10 @@ def source_files() -> list[Path]:
         files.extend(d.rglob("*.F"))
         files.extend(d.rglob("*.F90"))
     return sorted(files)
+
+
+def options_files() -> list[Path]:
+    return sorted(MITGCM_ROOT.rglob("pkg/*/*_OPTIONS.h"))
 
 
 def run(db_path: Path | None = None) -> None:
@@ -64,6 +68,16 @@ def run(db_path: Path | None = None) -> None:
 
         if records:
             print(f"  {path.relative_to(MITGCM_ROOT)}: {len(records)} subroutine(s)")
+
+    opts = options_files()
+    n_flags = 0
+    for path in opts:
+        for pkg, flag, desc in extract_package_options(path):
+            con.execute(
+                "INSERT INTO package_options VALUES (?, ?, ?)", [pkg, flag, desc]
+            )
+            n_flags += 1
+    print(f"Indexed {n_flags} package option flags from {len(opts)} OPTIONS.h files")
 
     con.close()
     print(f"\nDone. Indexed {sub_id - 1} subroutines.")
