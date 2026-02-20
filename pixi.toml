@@ -9,7 +9,6 @@ version = "0.1.0"
 
 [dependencies]
 python = "3.13.*"
-ollama = ">=0.16.3,<0.17"
 
 [pypi-dependencies]
 duckdb = ">=1.4.4, <2"
