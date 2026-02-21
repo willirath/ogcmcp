@@ -108,3 +108,18 @@ Walk one experiment end-to-end through the system.
 - [ ] Feed gaps and corrections back into M5
 
 **Done when:** The experiment runs to completion and any knowledge gaps found are closed.
+
+---
+
+## M8 — MITgcm documentation index
+
+Index the MITgcm documentation into a second ChromaDB collection so the
+system can answer questions from prose (parameter descriptions, package
+tutorials, known gotchas) rather than only from source code.
+
+- [ ] Parse RST source from `MITgcm/doc/` — strip directives, extract plain text per section
+- [ ] Embed and load into a `mitgcm_docs` ChromaDB collection (same embedding pipeline as M2)
+- [ ] `search_docs(query, top_k)` tool in `src/tools.py` and exposed via MCP server
+- [ ] `docs/docs-index.md`
+
+**Done when:** A query for `"how to set the Coriolis parameter"` returns the relevant parameter reference section from the MITgcm docs.
