@@ -1,7 +1,7 @@
 # Release tasks — v0.1
 
 Checklist of concrete work to do before calling this a first release.
-Feedback sections marked `> **MW:**` — fill in inline.
+Feedback sections marked `> **WR:**` — fill in inline.
 
 The architecture decisions in `plans/release-architecture.md` should be
 settled before starting the packaging items here.
@@ -16,7 +16,7 @@ The existing README.md is stale: M5/M6 show as incomplete, M7/M8 are absent,
 `embed-docs` and `docs_indexer` are missing from the layout table, the docs
 table is incomplete. Needs a pass to reflect the current state.
 
-> **MW:**
+> **WR:**
 >
 > (Any additions to the README beyond updating the milestone table and layout?
 > Should the README address the academic motivation / evaluation angle? Or keep
@@ -37,7 +37,7 @@ Known gaps:
 - No doc exists yet for the runtime (`docs/runtime.md` covers Docker build/run
   but may not reflect the M7 rotating_convection experiment)
 
-> **MW:**
+> **WR:**
 >
 > (Any docs you know are obviously wrong or missing beyond the above? Should
 > the diagrams in `docs/diagrams.md` be updated to include the docs index
@@ -57,7 +57,7 @@ The `namelist_to_code_tool` already has a note about declaration vs use sites
 (added after the M7 INI_PARMS observation). The others should be checked for
 similar real-world caveats.
 
-> **MW:**
+> **WR:**
 >
 > (Any specific tools where the docstring felt misleading or incomplete during
 > actual use? Any style preferences — terse vs verbose?)
@@ -77,7 +77,7 @@ should cover:
 - Gotchas encountered during setup (RBCS mask, DIAGNOSTICS_SIZE, vertical CFL)
 - How to regenerate, build, and run
 
-> **MW:**
+> **WR:**
 >
 > (Is one experiment README sufficient for v0.1, or should the tutorial
 > experiment also get one? Any specific sections you'd want included beyond
@@ -92,7 +92,7 @@ only in the conversation. The original in-conversation script had a coordinate
 bug. The fixed version should live somewhere in the repo — either as a
 `scripts/plot-experiment.py` or as a pixi task.
 
-> **MW:**
+> **WR:**
 >
 > (Should this be a general `plot-experiment.py` that works for any experiment,
 > or a specific `plot-rotating-convection.py`? Should it be a pixi task?)
@@ -112,7 +112,7 @@ These items cannot be started until the architecture questions are settled.
 - [ ] Smoke test: `pip install .` + `mitgcm-mcp download` + `mitgcm-mcp serve`
   in a clean environment
 
-> **MW:**
+> **WR:**
 >
 > (Any packaging constraints not covered in release-architecture.md? Is there
 > a target Python version range? Any concern about the chromadb or duckdb
@@ -135,7 +135,7 @@ Current backlog has 8 items. Proposed disposition for v0.1:
 | GPU Ollama | Post-v0.1 — performance only |
 | INI_PARMS use vs declaration | Post-v0.1 — caveat already in tool docstring |
 
-> **MW:**
+> **WR:**
 >
 > (Any items you'd move from post-v0.1 to included? Anything in the backlog
 > that feels blocking?)

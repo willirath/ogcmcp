@@ -1,7 +1,7 @@
 # Release architecture
 
 Design decisions for turning the current dev repo into a distributable package.
-Feedback sections are marked `> **MW:**` — fill in inline.
+Feedback sections are marked `> **WR:**` — fill in inline.
 
 ---
 
@@ -23,7 +23,7 @@ indices**. The package records which MITgcm checkpoint was indexed as metadata.
 Users who want to index a different version can do so, but that is an advanced
 use case, not the default path.
 
-> **MW:**
+> **WR:**
 >
 > (Do you agree with the "indices not source" framing? Any concern about the
 > MITgcm license specifically — it's MIT licensed, so bundling is technically
@@ -47,7 +47,7 @@ Options:
 Recommended: Zenodo for the indexed artifact tied to a paper; GitHub releases
 for software-only updates between publications.
 
-> **MW:**
+> **WR:**
 >
 > (Which hosting fits your workflow? Is there a paper in view that would
 > motivate a Zenodo deposit? What is the approximate size of the current
@@ -82,7 +82,7 @@ The choice here has downstream consequences: Option B requires rebuilding
 all indices and changes the packaging story significantly. It should be decided
 before any packaging work starts.
 
-> **MW:**
+> **WR:**
 >
 > (Who is the target user? Someone already running Ollama (researcher/developer
 > with LLM infrastructure) or someone who just wants `pip install` to work?
@@ -116,7 +116,7 @@ or after a local install:
 
 Pixi stays as the development tool; it is not a user-facing requirement.
 
-> **MW:**
+> **WR:**
 >
 > (Is the `uvx mitgcm-mcp` invocation style familiar / acceptable? Any
 > preference for conda packaging alongside pip? Any concern about the CLI
@@ -140,7 +140,7 @@ nothing. One option is to make layers 1 and 2 fail gracefully when indices are
 absent (return a helpful error rather than crashing), so the package is usable
 — for domain-knowledge queries at least — without running `download`.
 
-> **MW:**
+> **WR:**
 >
 > (Should the package be usable without indices? Is there a case for splitting
 > domain knowledge into a separate lightweight package that has no data
@@ -166,7 +166,7 @@ correctness and hallucination rate across conditions.
 The pre-built indices for a pinned MITgcm checkpoint are the natural citable
 artifact for such a study.
 
-> **MW:**
+> **WR:**
 >
 > (Is a paper a concrete goal? Does the evaluation framing above match what
 > you have in mind? What would a "good" result look like — is the hypothesis
