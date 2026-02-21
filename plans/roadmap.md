@@ -73,13 +73,13 @@ Wrap tools and expose them over MCP.
 
 First version of the tank-specific knowledge layer.
 
-- [ ] `translate_lab_params` — formula-based, covers f0, deltaX, viscAz, tAlpha
-- [ ] `check_scales` — computes Ro, Ek, Bu, δ, CFL; flags issues
-- [ ] `lookup_gotcha` — queryable catalogue, seeded from MITgcm rotating tank tutorial and docs
-- [ ] `suggest_experiment_config` — skeleton configs for at least rotating convection and Eady setups
-- [ ] `docs/domain-knowledge.md`
+- [x] `translate_lab_params` — formula-based, covers f0, deltaX, viscAz, tAlpha
+- [x] `check_scales` — computes Ro, Ek, Bu, δ, CFL; flags issues
+- [x] `lookup_gotcha` — queryable catalogue, seeded from MITgcm rotating tank tutorial and docs
+- [x] `suggest_experiment_config` — skeleton configs for at least rotating convection and Eady setups
+- [x] `docs/domain-knowledge.md`
 
-**Done when:** Given tank radius, depth, and rotation rate, the system returns a draft namelist and a scaling summary with any flags.
+**Done when:** Given tank radius, depth, and rotation rate, the system returns a draft namelist and a scaling summary with any flags. ✓
 
 ---
 

@@ -13,6 +13,12 @@ from src.tools import (
     namelist_to_code,
     search_code,
 )
+from src.domain import (
+    translate_lab_params,
+    check_scales,
+    lookup_gotcha,
+    suggest_experiment_config,
+)
 
 mcp = FastMCP("mitgcm")
 
@@ -146,6 +152,169 @@ def get_package_flags_tool(package_name: str) -> list[dict]:
     Each result has cpp_flag and description fields.
     """
     return get_package_flags(package_name)
+
+
+@mcp.tool()
+def translate_lab_params_tool(
+    Lx: float,
+    Ly: float,
+    depth: float,
+    Omega: float,
+    delta_T: float | None = None,
+    Nx: int | None = None,
+    Ny: int | None = None,
+    Nz: int | None = None,
+    nu: float = 1e-6,
+    kappa: float = 1.4e-7,
+    alpha: float = 2e-4,
+) -> dict:
+    """Translate physical lab parameters to MITgcm namelist values.
+
+    All length parameters are in metres; Omega in rad/s; nu and kappa in m^2/s;
+    alpha in K^-1; delta_T in Kelvin.
+
+    Parameters
+    ----------
+    Lx : float
+        Tank length in x in metres (use diameter for a cylindrical tank).
+    Ly : float
+        Tank length in y in metres (use diameter for a cylindrical tank).
+    depth : float
+        Water depth in metres.
+    Omega : float
+        Rotation rate in rad/s (0 for non-rotating).
+    delta_T : float or None
+        Temperature contrast in Kelvin (optional).
+    Nx : int or None
+        Grid cells in x.  Omit to skip delX in PARM04.
+    Ny : int or None
+        Grid cells in y.  Omit to skip delY in PARM04.
+    Nz : int or None
+        Vertical grid cells.  Omit to skip delZ in PARM04.
+    nu : float
+        Kinematic viscosity in m^2/s (default 1e-6, water at 20 degC).
+    kappa : float
+        Thermal diffusivity in m^2/s (default 1.4e-7, water at 20 degC).
+    alpha : float
+        Thermal expansion coefficient in K^-1 (default 2e-4, water at 20 degC).
+
+    Returns
+    -------
+    dict
+        Keys: PARM01, EOS_PARM01, PARM04 (if grid given), derived, notes.
+    """
+    return translate_lab_params(
+        Lx=Lx, Ly=Ly, depth=depth, Omega=Omega,
+        delta_T=delta_T, Nx=Nx, Ny=Ny, Nz=Nz,
+        nu=nu, kappa=kappa, alpha=alpha,
+    )
+
+
+@mcp.tool()
+def check_scales_tool(
+    Lx: float,
+    Ly: float,
+    depth: float,
+    Omega: float,
+    delta_T: float | None = None,
+    dx: float | None = None,
+    dy: float | None = None,
+    dz: float | None = None,
+    dt: float | None = None,
+    U: float | None = None,
+    nu: float = 1e-6,
+    alpha: float = 2e-4,
+) -> dict:
+    """Compute dimensionless numbers and flag issues for a rotating-tank configuration.
+
+    All length parameters are in metres; Omega in rad/s; dt in seconds;
+    U in m/s; nu in m^2/s; alpha in K^-1; delta_T in Kelvin.
+
+    Parameters
+    ----------
+    Lx : float
+        Tank length in x in metres.
+    Ly : float
+        Tank length in y in metres.
+    depth : float
+        Water depth in metres.
+    Omega : float
+        Rotation rate in rad/s (0 for non-rotating).
+    delta_T : float or None
+        Temperature contrast in Kelvin (needed for N and Bu).
+    dx : float or None
+        Horizontal grid spacing in x in metres (for CFL and Ekman resolution).
+    dy : float or None
+        Horizontal grid spacing in y in metres (for CFL).
+    dz : float or None
+        Vertical grid spacing in metres (for Ekman-layer resolution and CFL_v).
+    dt : float or None
+        Time step in seconds (needed for CFL).
+    U : float or None
+        Velocity scale in m/s (needed for Ro and CFL).
+    nu : float
+        Kinematic viscosity in m^2/s (default 1e-6).
+    alpha : float
+        Thermal expansion coefficient in K^-1 (default 2e-4).
+
+    Returns
+    -------
+    dict
+        Keys: "numbers" (dict of dimensionless numbers and scales),
+              "flags" (list of {"level": "warning"|"info", "message": str}).
+    """
+    return check_scales(
+        Lx=Lx, Ly=Ly, depth=depth, Omega=Omega,
+        delta_T=delta_T, dx=dx, dy=dy, dz=dz, dt=dt, U=U,
+        nu=nu, alpha=alpha,
+    )
+
+
+@mcp.tool()
+def lookup_gotcha_tool(topic: str) -> list[dict]:
+    """Search the rotating-tank MITgcm gotcha catalogue by keyword.
+
+    Case-insensitive keyword search over a curated catalogue of known
+    configuration traps for rotating-tank MITgcm experiments.  Returns
+    all entries whose keyword list matches any phrase in the topic string.
+
+    Parameters
+    ----------
+    topic : str
+        Free-text search string.  Examples: "nonhydrostatic", "linear EOS",
+        "spin-up", "sidewall", "diagnostics frequency", "rigid lid".
+
+    Returns
+    -------
+    list[dict]
+        Matching entries, each with keys: title, keywords, summary, detail.
+        Empty list if no match.
+    """
+    return lookup_gotcha(topic)
+
+
+@mcp.tool()
+def suggest_experiment_config_tool(experiment_type: str) -> dict | None:
+    """Return a skeleton MITgcm configuration for a known rotating-tank experiment type.
+
+    Returns a structured dict with CPP flags, namelist stanzas, and setup notes.
+    Recognised types: "rotating_convection", "baroclinic_instability".
+    Common aliases: "convection", "rotating convection", "eady", "baroclinic".
+    Lookup is case-insensitive.
+
+    Parameters
+    ----------
+    experiment_type : str
+        Experiment class name or alias.
+
+    Returns
+    -------
+    dict or None
+        Keys: "experiment_type", "description", "cpp_options" (list of str),
+        "namelists" (dict of file -> group -> param -> value), "notes" (list of str).
+        Returns None if the experiment type is not recognised.
+    """
+    return suggest_experiment_config(experiment_type)
 
 
 if __name__ == "__main__":

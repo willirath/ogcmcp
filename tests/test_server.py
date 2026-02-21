@@ -20,6 +20,10 @@ EXPECTED_TOOLS = {
     "diagnostics_fill_to_source_tool",
     "get_cpp_requirements_tool",
     "get_package_flags_tool",
+    "translate_lab_params_tool",
+    "check_scales_tool",
+    "lookup_gotcha_tool",
+    "suggest_experiment_config_tool",
 }
 
 
