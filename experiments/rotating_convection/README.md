@@ -147,6 +147,7 @@ pixi run build-rotating-convection   # compile MITgcm with this experiment's cod
 pixi run run-rotating-convection     # run for 360 s (7200 × 0.05 s steps)
 ```
 
+Wall time on a MacBook Pro (M-series, 2 MPI processes via Rosetta): ~4 min.
 Output is written to `experiments/rotating_convection/run/mnc_out_*/`.
 
 ### Visualise
