@@ -161,7 +161,7 @@ entries = lookup_gotcha(topic: str) -> list[dict]
 
 Each returned entry has keys: `title`, `keywords`, `summary`, `detail`.
 
-The catalogue contains seven entries covering:
+The catalogue contains ten entries covering:
 1. Non-hydrostatic pressure solve — CPP flag + `useNHMTerms`
 2. Linear EOS in freshwater — `sBeta = 0` in `data.eos`
 3. Spin-up time — O(Ek^{-1/2}) rotation periods
@@ -169,6 +169,9 @@ The catalogue contains seven entries covering:
 5. Pressure reference level — `EosRefP0` for shallow tanks
 6. Rigid lid vs free surface — `rigidLid` vs `implicitFreeSurface`
 7. Diagnostics output frequency — seconds, not time steps
+8. `DIAGNOSTICS_SIZE.h` `numDiags` must cover all requested fields
+9. RBCS mask is dimensionless 0–1; `tauRelaxT` must be non-zero
+10. Vertical CFL limit for explicit advection with convective velocities
 
 Any keyword phrase from a catalogue entry that appears in the lowercased
 query string triggers a match.  Returns an empty list if no entry matches.

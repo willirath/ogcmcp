@@ -187,6 +187,42 @@ singularity exec \
 Singularity automatically runs as the calling user, so `--user` and
 `--allow-run-as-root` are not needed.
 
+## Step-by-step workflow: rotating_convection
+
+The `rotating_convection` experiment uses a custom Python script to generate
+binary input files rather than copying them from the MITgcm submodule.
+
+### 1. Generate binary input files
+
+```bash
+pixi run gen-rotating-convection
+```
+
+Creates `bathy.bin`, `init_T.bin`, `rbcs_T.bin`, `rbcs_mask.bin` in
+`experiments/rotating_convection/input/`. These are gitignored but committed
+as a one-time exception so users can build and run without regenerating.
+
+### 2. Build and run
+
+```bash
+pixi run build-rotating-convection
+pixi run run-rotating-convection
+```
+
+Output is written to `experiments/rotating_convection/run/mnc_out_*/` as
+NetCDF files (2 tiles, split in X by the 2-process MPI decomposition).
+
+### 3. Visualise
+
+```bash
+pixi run python experiments/rotating_convection/plot.py
+```
+
+Produces `experiments/rotating_convection/T_section.png`.
+
+See `experiments/rotating_convection/README.md` for the full physical
+description, scale analysis, and gotchas encountered during setup.
+
 ## Known limitations
 
 - **SIZE.h is compiled in.** The MPI decomposition (`nPx`, `nPy`) and tile

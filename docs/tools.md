@@ -146,6 +146,27 @@ found.
 [{"cpp_flag": "ALLOW_NONHYDROST", "description": "Enable non-hydrostatic solver"}]
 ```
 
+### `search_docs(query, top_k=5, _chroma_path=...)`
+
+Semantic similarity search over MITgcm RST documentation sections.
+
+1. Embeds `query` with `nomic-embed-text` via Ollama.
+2. Queries the `mitgcm_docs` ChromaDB collection for nearest chunks.
+3. Deduplicates by `(file, section)`, returns top `top_k` sections.
+
+Return shape:
+
+```python
+[
+    {
+        "file": "phys_pkgs/rbcs.rst",
+        "section": "RBCS — Relaxation Boundary Conditions for T and S",
+        "snippet": "The RBCS package allows ...",  # first 400 chars
+    },
+    ...
+]
+```
+
 ## Connection strategy
 
 Each function opens its own DuckDB connection via `connect(path)` from

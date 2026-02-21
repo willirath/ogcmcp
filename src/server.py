@@ -29,8 +29,7 @@ def search_code_tool(query: str, top_k: int = 5) -> list[dict]:
     """Semantic search over MITgcm subroutines.
 
     Returns up to top_k subroutines whose source most closely matches the
-    natural-language query. Requires a running Ollama server and a populated
-    ChromaDB index (pixi run embed).
+    natural-language query. Requires Ollama and a populated ChromaDB index.
     """
     return search_code(query, top_k=top_k)
 
@@ -323,8 +322,8 @@ def search_docs_tool(query: str, top_k: int = 5) -> list[dict]:
     """Semantic search over MITgcm documentation sections.
 
     Returns up to top_k doc sections whose prose most closely matches the
-    natural-language query. Requires a running Ollama server and a populated
-    mitgcm_docs ChromaDB collection (pixi run embed-docs).
+    natural-language query. Requires Ollama and a populated mitgcm_docs
+    ChromaDB collection.
 
     Each result has: file (RST path relative to MITgcm/doc/), section
     (heading text), snippet (first 400 chars of cleaned section text).

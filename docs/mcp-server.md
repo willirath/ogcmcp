@@ -1,169 +1,155 @@
 # MCP server
 
-`src/server.py` wraps the seven M3 code-navigation tools in an MCP server
-using FastMCP (bundled in the official `mcp` SDK). It communicates over stdio
-so Claude Code picks it up with zero network configuration.
+`src/server.py` wraps all tools in an MCP server using FastMCP (bundled in
+the official `mcp` SDK). It communicates over stdio so Claude Code picks it
+up with zero network configuration.
 
-## Starting the server
+## Install (users)
+
+```bash
+claude mcp add --transport stdio --scope user mitgcm -- \
+  docker run --rm -i ghcr.io/willirath/mitgcm-mcp:v2026.02.1
+```
+
+## Development use
 
 ```sh
 pixi run serve
 ```
 
-The server blocks on stdin waiting for a client. You do not normally run it
-manually — Claude Code launches it automatically via `.mcp.json`.
-
-## Claude Code integration
-
-The project root contains `.mcp.json`:
-
-```json
-{
-  "mcpServers": {
-    "mitgcm": {
-      "command": "pixi",
-      "args": ["run", "serve"]
-    }
-  }
-}
-```
-
-Open a Claude Code session in this directory and the `mitgcm` server appears
-in `/mcp`. Claude can then call any of the eight tools directly.
+The `.mcp.json` in the repo root points Claude Code at `pixi run serve`
+when working inside the repository.
 
 ## Tools
 
 All name and parameter lookups are case-insensitive.
 
-### `search_code_tool`
+### Code navigation
 
+#### `search_code_tool`
 ```
 search_code_tool(query: str, top_k: int = 5) -> list[dict]
 ```
+Semantic search over subroutine embeddings. Returns up to `top_k` subroutines
+ranked by cosine similarity to the query.
 
-Semantic search over subroutine embeddings. Requires a running Ollama server
-(`docker compose up -d`) and a populated ChromaDB index (`pixi run embed`).
-
-Returns up to `top_k` subroutines ranked by cosine similarity:
-
-```python
-[{"id": 42, "name": "CG3D", "file": "...", "package": "model",
-  "line_start": 1, "line_end": 350}]
+#### `find_subroutines_tool`
 ```
-
-### `get_subroutine_tool`
-
+find_subroutines_tool(name: str) -> list[dict]
 ```
-get_subroutine_tool(name: str) -> dict | None
-```
+All subroutines matching `name` across all packages. Use when a name may
+appear in multiple packages (e.g. `DIC_COEFFS_SURF` in `bling` and `dic`).
+Follow up with `get_source_tool(name, package=...)`.
 
+#### `get_subroutine_tool`
+```
+get_subroutine_tool(name: str, package: str | None = None) -> dict | None
+```
 Metadata for one subroutine — no source text. Returns `None` if not found.
+Pass `package=` when the name is shared across packages.
 
-```python
-{"id": 42, "name": "CG3D", "file": "...", "package": "model",
- "line_start": 1, "line_end": 350}
+#### `get_source_tool`
 ```
-
-Use `line_end - line_start` to gauge size before fetching source.
-
-### `get_source_tool`
-
+get_source_tool(name: str, package: str | None = None,
+                offset: int = 0, limit: int = 100) -> dict | None
 ```
-get_source_tool(name: str, offset: int = 0, limit: int = 100) -> dict | None
+Paginated source lines. `offset` is 0-based within the subroutine source.
+Check `total_lines` from `get_subroutine_tool` before fetching large routines.
+
+#### `get_callers_tool`
 ```
-
-Paginated source lines for a subroutine. `offset` is 0-based within the
-subroutine source; `limit` caps lines returned. Returns `None` if not found.
-
-```python
-{"name": "CG3D", "total_lines": 532, "offset": 0,
- "lines": ["      SUBROUTINE CG3D(", ...]}
+get_callers_tool(name: str, package: str | None = None) -> list[dict]
 ```
-
-Large subroutines (e.g. `INI_PARMS` at ~1500 lines) must be read in pages
-to stay within Claude Code's tool-result token limit.
-
-### `get_callers_tool`
-
-```
-get_callers_tool(name: str) -> list[dict]
-```
-
 All subroutines that call `name`. Empty list if none.
 
-### `get_callees_tool`
-
+#### `get_callees_tool`
 ```
-get_callees_tool(name: str) -> list[dict]
+get_callees_tool(name: str, package: str | None = None) -> list[dict]
 ```
+All subroutine names called by `name`. Includes unresolved external references.
 
-All subroutine names called by `name`. Includes callees not present in the
-index (external or unresolved references). Empty list if none.
-
-### `namelist_to_code_tool`
-
+#### `namelist_to_code_tool`
 ```
 namelist_to_code_tool(param: str) -> list[dict]
 ```
-
 Subroutines that reference a namelist parameter, with their namelist group.
+Returns declaration sites (where the parameter is read from the namelist),
+not use sites. Follow up with `get_callers_tool` to find where the value
+is actually used.
 
-```python
-[{"id": 42, "name": "CG3D", "file": "...", "package": "model",
-  "namelist_group": "PARM03"}]
-```
-
-### `diagnostics_fill_to_source_tool`
-
+#### `diagnostics_fill_to_source_tool`
 ```
 diagnostics_fill_to_source_tool(field_name: str) -> list[dict]
 ```
+Subroutines that fill a MITgcm diagnostics field. Trailing spaces trimmed.
 
-Subroutines that fill a MITgcm diagnostics field. Trailing spaces in stored
-field names are trimmed before comparison.
-
-```python
-[{"id": 42, "name": "CG3D", "file": "...", "package": "model",
-  "array_name": "rho3d"}]
-```
-
-### `get_cpp_requirements_tool`
-
+#### `get_cpp_requirements_tool`
 ```
 get_cpp_requirements_tool(subroutine_name: str) -> list[str]
 ```
-
 CPP flags that guard a subroutine. Empty list if none.
 
-```python
-["ALLOW_NONHYDROST"]
-```
-
-### `get_package_flags_tool`
-
+#### `get_package_flags_tool`
 ```
 get_package_flags_tool(package_name: str) -> list[dict]
 ```
+CPP flags defined by a package, with descriptions.
 
-CPP flags defined by a package, with descriptions. Empty list if not found.
+### Documentation search
 
-```python
-[{"cpp_flag": "ALLOW_NONHYDROST", "description": "Enable non-hydrostatic solver"}]
+#### `search_docs_tool`
 ```
+search_docs_tool(query: str, top_k: int = 5) -> list[dict]
+```
+Semantic search over MITgcm RST documentation sections (parameter
+descriptions, package tutorials, algorithm explanations). Each result has
+`file`, `section`, and `snippet` (first 400 chars of the matched section).
+
+### Domain knowledge
+
+#### `translate_lab_params_tool`
+```
+translate_lab_params_tool(Lx, Ly, depth, Omega, delta_T=None,
+                           Nx=None, Ny=None, Nz=None,
+                           nu=1e-6, kappa=1.4e-7, alpha=2e-4) -> dict
+```
+Translate physical lab geometry to MITgcm namelist values. All lengths in
+metres, Omega in rad/s. Returns `PARM01`, `EOS_PARM01`, `PARM04`, `derived`,
+and `notes`.
+
+#### `check_scales_tool`
+```
+check_scales_tool(Lx, Ly, depth, Omega, delta_T=None,
+                  dx=None, dy=None, dz=None, dt=None, U=None,
+                  nu=1e-6, alpha=2e-4) -> dict
+```
+Compute dimensionless numbers (Ro, Ek, Bu, N, Ld) and flag CFL, Ekman-layer
+resolution, and aspect-ratio issues.
+
+#### `lookup_gotcha_tool`
+```
+lookup_gotcha_tool(topic: str) -> list[dict]
+```
+Keyword search over a curated catalogue of MITgcm rotating-tank configuration
+traps. Returns matching entries with `title`, `keywords`, `summary`, `detail`.
+
+#### `suggest_experiment_config_tool`
+```
+suggest_experiment_config_tool(experiment_type: str) -> dict | None
+```
+Skeleton MITgcm configuration for `rotating_convection` or
+`baroclinic_instability`. Returns CPP flags, namelist stanzas, and notes.
 
 ## Example session
 
 ```
-> get_subroutine_tool("cg3d")
-{"id": 42, "name": "CG3D", "file": "model/src/cg3d.F",
- "line_start": 13, "line_end": 545}
+→ namelist_to_code_tool("cg3dMaxIters")
+  [{"name": "CG3D", "namelist_group": "PARM03", ...}]
 
-> get_source_tool("cg3d", offset=0, limit=20)
-{"name": "CG3D", "total_lines": 532, "offset": 0, "lines": [...]}
+→ get_cpp_requirements_tool("CG3D")
+  ["ALLOW_NONHYDROST"]
 
-> namelist_to_code_tool("cg3dMaxIters")
-[{"name": "CG3D", "namelist_group": "PARM03", ...}]
-
-> get_cpp_requirements_tool("CG3D")
-["ALLOW_NONHYDROST"]
+→ search_docs_tool("non-hydrostatic pressure solver")
+  [{"file": "phys_pkgs/nonhydrostatic.rst",
+    "section": "Non-hydrostatic pressure", "snippet": "..."}]
 ```

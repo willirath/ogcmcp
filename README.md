@@ -1,93 +1,114 @@
-# MITgcm rotating-tank knowledge system
+# MITgcm MCP
 
-An AI-assisted system for configuring and extending MITgcm for idealised
-rotating-tank experiments at tabletop scale. See `plans/` for the full design
-and roadmap.
+An MCP server that gives Claude Code live access to the MITgcm source code
+graph, documentation, and a domain knowledge layer for rotating-tank
+experiments. Ask questions in natural language; the tools retrieve answers
+directly from the indexed source and docs.
 
-## Status
+## Install
 
-Working through the build roadmap (`plans/roadmap.md`).
+Requires [Claude Code](https://claude.ai/code) and Docker.
+
+```bash
+claude mcp add --transport stdio --scope user mitgcm -- \
+  docker run --rm -i ghcr.io/willirath/mitgcm-mcp:v2026.02.1
+```
+
+Docker pulls the image on first use (~600 MB — includes Ollama, the embedding
+model, and pre-built indices).
+
+## What it does
+
+Fifteen tools across three layers:
+
+**Code navigation** — search subroutines semantically, read source with
+pagination, walk caller/callee graphs, trace namelist parameters and
+diagnostics fields to their source, query CPP flags.
+
+**Documentation search** — semantic search over the MITgcm RST documentation
+(parameter descriptions, package tutorials, algorithm explanations).
+
+**Domain knowledge** — translate physical lab parameters to namelist values,
+compute dimensionless numbers and flag CFL/Ekman issues, look up known
+configuration gotchas, get skeleton configs for rotating-convection and
+baroclinic-instability experiments.
+
+## Example
+
+```
+User: What namelist parameter controls the non-hydrostatic pressure solver
+      iteration limit, and what CPP flag must be set?
+
+→ namelist_to_code_tool("cg3dMaxIters")
+  [{"name": "CG3D", "namelist_group": "PARM03", ...}]
+
+→ get_cpp_requirements_tool("CG3D")
+  ["ALLOW_NONHYDROST"]
+```
+
+## Milestones
 
 | Milestone | What | Status |
 |---|---|---|
 | M0 | Environment, MITgcm submodule, embeddings server | ✓ |
-| M1 | DuckDB code graph (2505 subroutines indexed) | ✓ |
-| M2 | ChromaDB semantic index (4910 chunks) | ✓ |
+| M1 | DuckDB code graph (2433 subroutines indexed) | ✓ |
+| M2 | ChromaDB subroutine index | ✓ |
 | M3 | Core query tools | ✓ |
 | M4 | MCP server | ✓ |
-| M5 | Domain knowledge layer | — |
-| M6 | First real experiment | — |
+| M5 | Domain knowledge layer | ✓ |
+| M6 | MITgcm runtime environment (Docker) | ✓ |
+| M7 | First real experiment (rotating convection) | ✓ |
+| M8 | MITgcm documentation index | ✓ |
 
-## Setup
+## For developers
 
-### Prerequisites
+Requires [pixi](https://pixi.sh) and Docker.
 
-- [pixi](https://pixi.sh) — Python environment and task runner
-- Docker (with Compose) — runs the ollama embedding server
-- git
-
-### 1. Clone with the submodule
-
-The MITgcm source is a git submodule — use `--recurse-submodules` or the
-directory will be empty:
-
-```sh
+```bash
 git clone --recurse-submodules https://github.com/willirath/2026_mitgcm_mcp
-```
-
-### 2. Install Python dependencies
-
-```sh
+cd 2026_mitgcm_mcp
 pixi install
-```
 
-### 3. Start the embedding server
-
-```sh
+# Start the Ollama embedding server
 docker compose up -d
-docker compose exec ollama ollama pull nomic-embed-text  # first time only
-```
+docker compose exec ollama ollama pull nomic-embed-text   # first time only
 
-### 4. Build the indices
+# Build the indices
+pixi run index       # Fortran → DuckDB (~2 min)
+pixi run embed       # subroutines → ChromaDB (~45 min)
+pixi run embed-docs  # RST docs → ChromaDB (~5 min)
 
-```sh
-pixi run index   # parse Fortran → DuckDB code graph (~2 min)
-pixi run embed   # embed chunks → ChromaDB semantic index (~45 min)
-```
-
-Both are required for the MCP tools to work. `embed` calls the Ollama server,
-so Docker must be running.
-
-### 5. Run the tests
-
-```sh
+# Run tests
 pixi run test
+
+# Start the MCP server (Claude Code launches this automatically via .mcp.json)
+pixi run serve
 ```
-
-### 6. Connect to Claude Code
-
-The `.mcp.json` file tells Claude Code how to start the MCP server. No manual
-startup is needed — open the project directory in Claude Code and the server
-launches automatically via `pixi run serve`.
 
 ## Layout
 
 ```
 .
 ├── src/
-│   ├── indexer/       Fortran source parser and DuckDB pipeline
-│   ├── embedder/      ChromaDB embedding pipeline
+│   ├── indexer/       Fortran source parser → DuckDB
+│   ├── embedder/      Subroutine embedding pipeline → ChromaDB
+│   ├── docs_indexer/  RST documentation parser + embedding pipeline
+│   ├── domain/        Domain knowledge (scales, gotchas, configs)
 │   ├── tools.py       Plain Python callables over DuckDB + ChromaDB
-│   └── server.py      FastMCP stdio server wrapping the tools
+│   └── server.py      FastMCP stdio server
 ├── tests/
-│   ├── indexer/       Tests for the indexer
-│   ├── embedder/      Tests for the embedder
-│   └── tools/         Tests for the query tools
+├── experiments/
+│   ├── rotating_convection/   Worked example (README + gen.py + plot.py)
+│   └── tutorial_rotating_tank/
+├── docker/
+│   ├── mitgcm/        MITgcm build image (gfortran + OpenMPI + NetCDF)
+│   └── mcp/           Self-contained MCP image (Ollama + model + indices)
+├── scripts/           Build and run helpers for experiments
 ├── docs/              Implementation notes (one file per component)
-├── plans/             Design docs and milestone roadmap
+├── plans/             Design docs and release roadmap
 ├── MITgcm/            MITgcm source (git submodule, pinned)
-├── .mcp.json          Claude Code MCP server auto-discovery
-├── compose.yml        Docker service for the ollama embedding server
+├── compose.yml        Ollama service for development
+├── .mcp.json          Claude Code MCP server config (dev: pixi run serve)
 └── data/              Generated artifacts — gitignored (index.duckdb, chroma/)
 ```
 
@@ -96,13 +117,16 @@ launches automatically via `pixi run serve`.
 | File | Covers |
 |---|---|
 | `docs/environment.md` | pixi setup, dependencies |
-| `docs/mitgcm-source.md` | git submodule, source layout, updating |
-| `docs/embeddings.md` | ollama Docker setup, embedding model |
-| `docs/parsing.md` | Fortran extraction approach, fixed-form specifics |
+| `docs/mitgcm-source.md` | git submodule, source layout |
+| `docs/embeddings.md` | Ollama Docker setup, embedding model |
+| `docs/parsing.md` | Fortran extraction approach |
 | `docs/duckdb.md` | Code graph schema, example queries |
-| `docs/indexer.md` | Indexer modules, data flow, extension guide |
-| `docs/testing.md` | Test structure, conventions, adversarial tests |
-| `docs/chromadb.md` | Embedding pipeline, chunking, query examples |
-| `docs/tools.md` | Query tool functions, return shapes, example session |
-| `docs/mcp-server.md` | MCP server, tool list, Claude Code integration |
-| `docs/diagrams.md` | Build pipeline and query-time flow (Mermaid) |
+| `docs/indexer.md` | Indexer pipeline |
+| `docs/chromadb.md` | Embedding pipeline, chunking |
+| `docs/docs-index.md` | RST documentation index (M8) |
+| `docs/testing.md` | Test structure and conventions |
+| `docs/tools.md` | Query tool functions and return shapes |
+| `docs/domain-knowledge.md` | Domain knowledge layer |
+| `docs/mcp-server.md` | MCP server, all tools, integration |
+| `docs/runtime.md` | MITgcm Docker runtime, experiments |
+| `docs/diagrams.md` | Pipeline and query-time flow diagrams |

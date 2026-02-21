@@ -13,15 +13,15 @@ the Rossby deformation radius.
 
 The original setup request:
 
-> Set up a rotating convection experiment in a 1 m cylindrical tank rotating at
-> 10 rpm. The tank has a parabolic bottom (1 cm deep at the centre, 12 cm at
-> the edge). The bottom is cooled to 0 °C; the initial temperature is a linear
-> profile from 20 °C at the surface to 0 °C at the edge depth. Use RBCS to
-> maintain the cold bottom boundary condition.
+> Cylindrical tank. Rotating clockwise at 10 rpm. Water depth is 1 cm in the
+> centre of the cylinder and 12 cm at the edge. Radius of tank is 50 cm.
+> Initial condition is stratified with linear temperature from 20 °C at
+> surface to 0 °C at bottom. Cooled from below, assume infinite heat bath
+> outside of the tank.
 
 The system used `translate_lab_params`, `check_scales`, and
-`suggest_experiment_config` to derive namelist parameters, then iterated on the
-configuration until the model ran stably.
+`suggest_experiment_config` to derive namelist parameters, then iterated on
+the configuration until the model ran stably.
 
 ---
 
