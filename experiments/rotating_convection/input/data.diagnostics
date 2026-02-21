@@ -1,0 +1,15 @@
+# Diagnostics output: snapshots every 6 s (= 1 rotation period of 10 rpm tank)
+ &DIAGNOSTICS_LIST
+  fields(1,1) = 'THETA   ',
+  fileName(1) = 'T',
+  frequency(1) = -6.,
+
+  fields(1,2) = 'UVEL    ',
+  fields(2,2) = 'VVEL    ',
+  fields(3,2) = 'WVEL    ',
+  fileName(2) = 'vel',
+  frequency(2) = -6.,
+ &END
+
+ &DIAG_STATIS_PARMS
+ &END

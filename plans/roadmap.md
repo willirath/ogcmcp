@@ -102,12 +102,12 @@ Containerised MITgcm build that runs locally via Docker and translates directly 
 
 Walk one experiment end-to-end through the system.
 
-- [ ] Pick a concrete tank setup (e.g. rotating convection)
-- [ ] Use the system to generate a full configuration
-- [ ] Run it in MITgcm via the M6 runtime
-- [ ] Feed gaps and corrections back into M5
+- [x] Pick a concrete tank setup (e.g. rotating convection)
+- [x] Use the system to generate a full configuration
+- [x] Run it in MITgcm via the M6 runtime
+- [x] Feed gaps and corrections back into M5
 
-**Done when:** The experiment runs to completion and any knowledge gaps found are closed.
+**Done when:** The experiment runs to completion and any knowledge gaps found are closed. ✓
 
 ---
 

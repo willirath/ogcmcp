@@ -112,6 +112,70 @@ CATALOGUE: list[dict] = [
             "steps by deltaT to get the correct value in seconds."
         ),
     },
+    {
+        "title": "DIAGNOSTICS_SIZE.h numDiags must cover all requested fields",
+        "keywords": [
+            "diagnostics_size", "numdiags", "diagnostics size", "not enough space",
+            "active diagnostics", "diagnostics_set_pointers",
+        ],
+        "summary": (
+            "The compile-time parameter numDiags in DIAGNOSTICS_SIZE.h must be at least "
+            "(number of requested fields) × Nr. The default is 1×Nr, which only fits one "
+            "3-D diagnostic field."
+        ),
+        "detail": (
+            "MITgcm's default DIAGNOSTICS_SIZE.h sets numDiags = 1*Nr (e.g. 40 for Nr=40). "
+            "If you request more than one 3-D field in data.diagnostics, the model aborts at "
+            "startup with 'Not enough space for all active diagnostics: numDiags=40 but "
+            "needs at least 160'. Fix: copy DIAGNOSTICS_SIZE.h into your experiment's code/ "
+            "directory and increase numDiags (e.g. numDiags = 8*Nr gives room for 8 3-D "
+            "fields). Because this is a compile-time change, a full clean build is required "
+            "— incremental builds do not update the symlinks genmake2 creates."
+        ),
+    },
+    {
+        "title": "RBCS mask is dimensionless 0–1; tauRelaxT must be non-zero",
+        "keywords": [
+            "rbcs", "relaxation", "restoring", "taurelax", "taurelaxT", "relaxmaskfile",
+            "relaxtfile", "bottom cooling", "rbcsforcingperiod",
+        ],
+        "summary": (
+            "The RBCS relaxMaskFile contains dimensionless weights in [0,1]; tauRelaxT [s] "
+            "is the restoring timescale. tauRelaxT must never be zero even when the mask "
+            "is used to control strength."
+        ),
+        "detail": (
+            "RBCS tendency: dT/dt += -mask(i,j,k) * (1/tauRelaxT) * (T - T_relax). "
+            "relaxMaskFile holds dimensionless weights (0 = no restoring, 1 = full restoring "
+            "at rate 1/tauRelaxT). A common mistake is putting 1/tau directly into the mask "
+            "file and leaving tauRelaxT=0, which causes a division-by-zero abort at startup. "
+            "Set tauRelaxT to the desired timescale in seconds and put 0–1 weights in the "
+            "mask file. For steady forcing set rbcsForcingPeriod=0 and rbcsForcingCycle=0."
+        ),
+    },
+    {
+        "title": "Vertical CFL limit for explicit advection with convective velocities",
+        "keywords": [
+            "cfl", "vertical cfl", "convection", "instability", "blow up", "nan",
+            "tempadvscheme", "advection scheme", "vertical velocity",
+        ],
+        "summary": (
+            "Implicit diffusion does not stabilise explicit advection. Convective "
+            "downwellings can violate the vertical CFL (w*dt/dz < 0.5) even when "
+            "diffusion is implicit."
+        ),
+        "detail": (
+            "MITgcm's implicitDiffusion=.TRUE. only applies to the diffusive (Laplacian) "
+            "term; tracer and momentum advection remain explicit and are subject to the "
+            "CFL criterion w*dt/dz < 0.5. In convection experiments, vertical velocities "
+            "can grow to O(mm/s – cm/s) over the first few hundred seconds, causing the "
+            "CFL to exceed 0.5 and the solution to diverge to NaN. Two mitigations: "
+            "(1) reduce deltaT so that w_max*dt/dz < 0.5 with margin; "
+            "(2) add tempAdvScheme=33 (&PARM01) to enable the PPM monotone advection "
+            "scheme, which is more stable near sharp gradients. Halving deltaT roughly "
+            "doubles the required run time; use nTimeSteps accordingly."
+        ),
+    },
 ]
 
 

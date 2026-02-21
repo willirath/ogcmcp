@@ -2,6 +2,25 @@
 
 Known limitations and deferred improvements, in no particular priority order.
 
+## short bullets, to be expanded into real backlog items
+
+- Gotchas --> JSON? (Same for encoding other knowledge?)
+- Add docs/ or readme to experiment (reflecting the user request, considerations, discussion, etc)
+- Add tool for forcing file generation?
+- visualisation?
+- pixi task for each experiment the way to go? Consider making experiments self contained? (Later...)
+- ensure (via claude?) that readme etc. doesn't go stale
+- feed back knowledge / gotchas from setting up experiments
+- how to ensure tool use instread of direct reading? eg. 
+```
+ Bash(sed -n '80,130p' /Users/wrath/src/github.com/willirath/2026-dtg/MITg
+      cm/pkg/rbcs/rbcs_add_tendency.F)                      
+  ⎿            gTendency(i,j) = gTendency(i,j)                             
+          &       - RBC_maskV(i,j,k,bi,bj)*rec_tauRlx                   
+          &        *( vVel(i,j,k,bi,bj)- RBCvVel(i,j,k,bi,bj) )            
+     … +24 lines (ctrl+o to expand)                             
+```
+
 ---
 
 ## CPP guard attribution is per-subroutine, not per-line

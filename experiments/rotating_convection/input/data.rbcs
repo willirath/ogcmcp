@@ -1,0 +1,12 @@
+# RBCS: restore bottom cell to 0 degC (cold plate / infinite heat bath)
+# relaxMaskFile: dimensionless 0-1 weight; 1.0 at bottom wet cell, 0 elsewhere
+# tauRelaxT: restoring timescale [s]; effective rate = mask * (1/tauRelaxT)
+# relaxTFile: target temperature [degC]; 0 degC everywhere
+ &RBCS_PARM01
+ useRBCtemp=.TRUE.,
+ tauRelaxT=1.,
+ relaxTFile='rbcs_T.bin',
+ relaxMaskFile='rbcs_mask.bin',
+ rbcsForcingPeriod=0.,
+ rbcsForcingCycle=0.,
+ &

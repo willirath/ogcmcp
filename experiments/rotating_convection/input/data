@@ -1,0 +1,71 @@
+# ====================
+# | Model parameters |
+# ====================
+#
+# Rotating convection experiment
+# Cylindrical tank, R=0.5 m, parabolic bottom (1 cm centre -> 12 cm edge)
+# Clockwise 10 rpm -> f0 = -2*Omega = -2.094 rad/s
+# Initial: linear T from 20 degC (surface) to 0 degC (bottom, H_max=12 cm)
+# Forcing: RBCS bottom restoring to 0 degC (cold plate, infinite heat bath)
+
+# Continuous equation parameters
+ &PARM01
+ tRef=40*10.0,
+ sRef=40*0.0,
+ viscAh=1.0E-5,
+ viscAz=5.0E-5,
+ implicitViscosity=.TRUE.,
+ no_slip_sides=.FALSE.,
+ no_slip_bottom=.TRUE.,
+ diffKhT=1.0E-7,
+ diffKzT=1.0E-6,
+ tempAdvScheme=33,
+ implicitDiffusion=.TRUE.,
+ f0=-2.0943951023931953,
+ beta=0.,
+ eosType='LINEAR',
+ tAlpha=2.0E-4,
+ sBeta=0.,
+ gravity=9.81,
+ rhoConst=999.8,
+ rhoNil=999.8,
+ rigidLid=.TRUE.,
+ implicitFreeSurface=.FALSE.,
+ nonHydrostatic=.TRUE.,
+ readBinaryPrec=64,
+ writeBinaryPrec=64,
+ &
+
+# Elliptic solver parameters
+ &PARM02
+ cg2dMaxIters=1000,
+ cg2dTargetResidual=1.E-13,
+ cg3dMaxIters=200,
+ cg3dTargetResidual=1.E-8,
+ &
+
+# Time stepping parameters
+ &PARM03
+ nIter0=0,
+ nTimeSteps=7200,
+ deltaT=0.05,
+ abEps=0.1,
+ pChkptFreq=180.,
+ dumpFreq=0.,
+ monitorFreq=6.,
+ monitorSelect=2,
+ &
+
+# Gridding parameters
+ &PARM04
+ usingCartesianGrid=.TRUE.,
+ delX=60*1.66666666666667E-2,
+ delY=60*1.66666666666667E-2,
+ delZ=40*3.0E-3,
+ &
+
+# Input datasets
+ &PARM05
+ hydrogThetaFile='init_T.bin',
+ bathyFile='bathy.bin',
+ &

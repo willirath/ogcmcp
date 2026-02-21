@@ -14,6 +14,9 @@ build-image    = "docker build --platform linux/amd64 -t mitgcm:latest ."
 setup-tutorial = "bash scripts/setup-tutorial.sh"
 build-tutorial = "bash scripts/build-experiment.sh experiments/tutorial_rotating_tank"
 run-tutorial   = "bash scripts/run-experiment.sh experiments/tutorial_rotating_tank"
+gen-rotating-convection   = "python scripts/gen-rotating-convection.py"
+build-rotating-convection = "bash scripts/build-experiment.sh experiments/rotating_convection"
+run-rotating-convection   = "bash scripts/run-experiment.sh experiments/rotating_convection"
 
 [dependencies]
 python = "3.13.*"

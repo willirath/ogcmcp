@@ -1,0 +1,7 @@
+ &MNC_01
+ mnc_use_outdir=.TRUE.,
+ mnc_outdir_str='mnc_out_',
+ monitor_mnc=.FALSE.,
+ pickup_read_mnc=.FALSE.,
+ pickup_write_mnc=.FALSE.,
+ &

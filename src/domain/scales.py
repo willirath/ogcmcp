@@ -107,10 +107,11 @@ def check_scales(
     if Omega == 0.0:
         numbers["Ek_v"] = None
     else:
-        _Ek_v = (_nu / (_f0 * _depth ** 2)).to(ureg.dimensionless)
+        _abs_f0 = abs(_f0)
+        _Ek_v = (_nu / (_abs_f0 * _depth ** 2)).to(ureg.dimensionless)
         numbers["Ek_v"] = _Ek_v.magnitude
 
-        _ekman_depth = (_nu / _f0) ** 0.5
+        _ekman_depth = (_nu / _abs_f0) ** 0.5
         numbers["ekman_depth"] = _ekman_depth.to(ureg.meter).magnitude
 
         _spin_up_periods = _Ek_v ** (-0.5)
@@ -118,11 +119,11 @@ def check_scales(
 
         if U is not None:
             _U = U * ureg.meter / ureg.second
-            _Ro = (_U / (_f0 * _L)).to(ureg.dimensionless)
+            _Ro = (_U / (_abs_f0 * _L)).to(ureg.dimensionless)
             numbers["Ro"] = _Ro.magnitude
 
         if _N is not None:
-            _Bu = ((_N * _depth) / (_f0 * _L)) ** 2
+            _Bu = ((_N * _depth) / (_abs_f0 * _L)) ** 2
             numbers["Bu"] = _Bu.to(ureg.dimensionless).magnitude
 
     # CFL has no Omega dependency — compute regardless of rotation.

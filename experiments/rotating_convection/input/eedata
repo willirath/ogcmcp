@@ -1,0 +1,6 @@
+# Example "eedata" file
+# Lines beginning "#" are comments
+# nTx - No. threads per process in X
+# nTy - No. threads per process in Y
+ &EEPARMS
+ &
