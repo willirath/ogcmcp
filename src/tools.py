@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from src.indexer.schema import DB_PATH, connect
-from src.embedder.store import CHROMA_PATH
+from src.embedder.store import CHROMA_PATH, get_docs_collection
 
 
 def search_code(query: str, top_k: int = 5, _db_path: Path = DB_PATH, _chroma_path: Path = CHROMA_PATH) -> list[dict]:
@@ -252,3 +252,44 @@ def get_package_flags(package_name: str, _db_path: Path = DB_PATH) -> list[dict]
         con.close()
 
     return [{"cpp_flag": r[0], "description": r[1]} for r in rows]
+
+
+def search_docs(query: str, top_k: int = 5, _chroma_path: Path = CHROMA_PATH) -> list[dict]:
+    """Semantic search over MITgcm documentation sections.
+
+    Returns up to top_k doc sections whose text most closely matches the
+    natural-language query.  Requires a running Ollama server and a populated
+    mitgcm_docs ChromaDB collection (pixi run embed-docs).
+
+    Each result has keys: file, section, snippet (first 400 chars of text).
+    """
+    import ollama
+
+    collection = get_docs_collection(_chroma_path)
+    response = ollama.embed(model="nomic-embed-text", input=query)
+    embedding = response.embeddings[0]
+
+    results = collection.query(
+        query_embeddings=[embedding],
+        n_results=top_k * 5,
+        include=["metadatas", "distances", "documents"],
+    )
+
+    # Deduplicate: keep best (lowest distance) chunk per (file, section)
+    best: dict[tuple[str, str], tuple[float, dict, str]] = {}
+    for meta, dist, doc in zip(
+        results["metadatas"][0], results["distances"][0], results["documents"][0]
+    ):
+        key = (meta["file"], meta["section"])
+        if key not in best or dist < best[key][0]:
+            best[key] = (dist, meta, doc)
+
+    ranked = sorted(best.values(), key=lambda x: x[0])[:top_k]
+    return [
+        {
+            "file": meta["file"],
+            "section": meta["section"],
+            "snippet": doc[:400],
+        }
+        for _, meta, doc in ranked
+    ]

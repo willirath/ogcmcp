@@ -117,9 +117,9 @@ Index the MITgcm documentation into a second ChromaDB collection so the
 system can answer questions from prose (parameter descriptions, package
 tutorials, known gotchas) rather than only from source code.
 
-- [ ] Parse RST source from `MITgcm/doc/` — strip directives, extract plain text per section
-- [ ] Embed and load into a `mitgcm_docs` ChromaDB collection (same embedding pipeline as M2)
-- [ ] `search_docs(query, top_k)` tool in `src/tools.py` and exposed via MCP server
-- [ ] `docs/docs-index.md`
+- [x] Parse RST source from `MITgcm/doc/` — strip directives, extract plain text per section
+- [x] Embed and load into a `mitgcm_docs` ChromaDB collection (same embedding pipeline as M2)
+- [x] `search_docs(query, top_k)` tool in `src/tools.py` and exposed via MCP server
+- [x] `docs/docs-index.md`
 
-**Done when:** A query for `"how to set the Coriolis parameter"` returns the relevant parameter reference section from the MITgcm docs.
+**Done when:** A query for `"how to set the Coriolis parameter"` returns the relevant parameter reference section from the MITgcm docs. ✓

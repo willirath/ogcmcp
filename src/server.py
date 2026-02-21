@@ -12,6 +12,7 @@ from src.tools import (
     get_subroutine,
     namelist_to_code,
     search_code,
+    search_docs,
 )
 from src.domain import (
     translate_lab_params,
@@ -315,6 +316,20 @@ def suggest_experiment_config_tool(experiment_type: str) -> dict | None:
         Returns None if the experiment type is not recognised.
     """
     return suggest_experiment_config(experiment_type)
+
+
+@mcp.tool()
+def search_docs_tool(query: str, top_k: int = 5) -> list[dict]:
+    """Semantic search over MITgcm documentation sections.
+
+    Returns up to top_k doc sections whose prose most closely matches the
+    natural-language query. Requires a running Ollama server and a populated
+    mitgcm_docs ChromaDB collection (pixi run embed-docs).
+
+    Each result has: file (RST path relative to MITgcm/doc/), section
+    (heading text), snippet (first 400 chars of cleaned section text).
+    """
+    return search_docs(query, top_k=top_k)
 
 
 if __name__ == "__main__":

@@ -24,6 +24,7 @@ EXPECTED_TOOLS = {
     "check_scales_tool",
     "lookup_gotcha_tool",
     "suggest_experiment_config_tool",
+    "search_docs_tool",
 }
 
 
