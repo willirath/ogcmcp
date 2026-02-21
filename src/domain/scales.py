@@ -97,6 +97,13 @@ def check_scales(
     numbers["f0"] = _f0.to(1 / ureg.second).magnitude
     numbers["aspect_ratio"] = _aspect_ratio.magnitude
 
+    # N depends only on delta_T, not on rotation.
+    _N = None
+    if delta_T is not None:
+        _delta_T = delta_T * ureg.kelvin
+        _N = (_alpha * _g * _delta_T / _depth) ** 0.5
+        numbers["N"] = _N.to(1 / ureg.second).magnitude
+
     if Omega == 0.0:
         numbers["Ek_v"] = None
     else:
@@ -114,34 +121,30 @@ def check_scales(
             _Ro = (_U / (_f0 * _L)).to(ureg.dimensionless)
             numbers["Ro"] = _Ro.magnitude
 
-        if delta_T is not None:
-            _delta_T = delta_T * ureg.kelvin
-            _N = (_alpha * _g * _delta_T / _depth) ** 0.5
-            numbers["N"] = _N.to(1 / ureg.second).magnitude
+        if _N is not None:
             _Bu = ((_N * _depth) / (_f0 * _L)) ** 2
             numbers["Bu"] = _Bu.to(ureg.dimensionless).magnitude
 
-        # CFL: horizontal — need dt and U plus at least one of dx, dy.
-        if dt is not None and U is not None:
-            _U = U * ureg.meter / ureg.second
-            _dt = dt * ureg.second
+    # CFL has no Omega dependency — compute regardless of rotation.
+    if dt is not None and U is not None:
+        _U = U * ureg.meter / ureg.second
+        _dt = dt * ureg.second
 
-            # Determine the smallest available horizontal spacing.
-            _dx_vals = []
-            if dx is not None:
-                _dx_vals.append(dx * ureg.meter)
-            if dy is not None:
-                _dx_vals.append(dy * ureg.meter)
+        _dx_vals = []
+        if dx is not None:
+            _dx_vals.append(dx * ureg.meter)
+        if dy is not None:
+            _dx_vals.append(dy * ureg.meter)
 
-            if _dx_vals:
-                _min_dh = min(_dx_vals)
-                _CFL_h = (_U * _dt / _min_dh).to(ureg.dimensionless)
-                numbers["CFL_h"] = _CFL_h.magnitude
+        if _dx_vals:
+            _min_dh = min(_dx_vals)
+            _CFL_h = (_U * _dt / _min_dh).to(ureg.dimensionless)
+            numbers["CFL_h"] = _CFL_h.magnitude
 
-            if dz is not None:
-                _dz = dz * ureg.meter
-                _CFL_v = (_U * _dt / _dz).to(ureg.dimensionless)
-                numbers["CFL_v"] = _CFL_v.magnitude
+        if dz is not None:
+            _dz = dz * ureg.meter
+            _CFL_v = (_U * _dt / _dz).to(ureg.dimensionless)
+            numbers["CFL_v"] = _CFL_v.magnitude
 
     # --- Flags ---
 
@@ -170,12 +173,12 @@ def check_scales(
         _ekman_depth_val = numbers["ekman_depth"]
         _ekman_depth_mm = _ekman_depth_val * 1000.0
 
-        if dz is not None and _ekman_depth_val > dz:
+        if dz is not None and dz > _ekman_depth_val:
             _dz_mm = dz * 1000.0
             flags.append({
                 "level": "warning",
                 "message": (
-                    f"Ekman layer depth {_ekman_depth_mm:.1f} mm > dz {_dz_mm:.1f} mm — "
+                    f"Ekman layer depth {_ekman_depth_mm:.1f} mm < dz {_dz_mm:.1f} mm — "
                     "Ekman layer not resolved vertically"
                 ),
             })

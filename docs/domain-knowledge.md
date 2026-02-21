@@ -251,13 +251,13 @@ scales = check_scales(
     dy=params["derived"]["dy"],
     dz=params["derived"]["dz"],
 )
-# scales["numbers"]["Ek_v"] ~ 4e-4
+# scales["numbers"]["Ek_v"] ~ 4e-5
 # scales["flags"] contains aspect-ratio warning (depth/L = 0.25 > 0.1)
 ```
 
 Expected outputs:
 - `params["PARM01"]["f0"]` ≈ 0.628 (= 2 × 0.314)
-- `scales["numbers"]["Ek_v"]` ≈ 3.98×10⁻⁴ (= 1×10⁻⁶ / (0.628 × 0.04))
+- `scales["numbers"]["Ek_v"]` ≈ 3.98×10⁻⁵ (= 1×10⁻⁶ / (0.628 × 0.04))
 - `scales["flags"]` contains at least one warning about aspect ratio
 
 ---

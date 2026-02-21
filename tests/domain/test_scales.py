@@ -81,18 +81,18 @@ def test_cfl_no_warning_when_ok():
 
 
 def test_ekman_not_resolved():
-    """ekman_depth > dz should trigger a vertical Ekman-layer resolution warning."""
-    # Omega=1 → f0=2, nu=1e-6 → ekman_depth = sqrt(1e-6/2) ≈ 0.000707 m
-    # Use dz=0.0001 m (0.1 mm) so ekman_depth >> dz.
-    result = check_scales(Lx=0.8, Ly=0.8, depth=0.2, Omega=1.0, dz=0.0001)
+    """dz > ekman_depth should trigger a vertical Ekman-layer resolution warning."""
+    # Omega=1 → f0=2, nu=1e-6 → ekman_depth = sqrt(1e-6/2) ≈ 0.000707 m (0.7 mm)
+    # Use dz=0.01 m (10 mm) >> ekman_depth → layer not resolved.
+    result = check_scales(Lx=0.8, Ly=0.8, depth=0.2, Omega=1.0, dz=0.01)
     messages = [f["message"] for f in result["flags"]]
     assert any("ekman layer" in m.lower() and "not resolved" in m.lower() for m in messages)
 
 
 def test_ekman_resolved_no_warning():
-    """ekman_depth < dz should not trigger the resolution warning."""
-    # ekman_depth ≈ 0.000707 m; use dz=0.01 m (10 mm) so it is resolved.
-    result = check_scales(Lx=0.8, Ly=0.8, depth=0.2, Omega=1.0, dz=0.01)
+    """dz < ekman_depth should not trigger the resolution warning."""
+    # ekman_depth ≈ 0.000707 m (0.7 mm); use dz=0.0001 m (0.1 mm) → layer resolved.
+    result = check_scales(Lx=0.8, Ly=0.8, depth=0.2, Omega=1.0, dz=0.0001)
     for f in result["flags"]:
         assert "not resolved" not in f["message"].lower()
 
@@ -122,3 +122,16 @@ def test_Bu_computed_with_delta_T():
     result = _base_call(delta_T=2.0)
     assert "Bu" in result["numbers"]
     assert result["numbers"]["Bu"] > 0
+
+
+def test_N_computed_without_Omega():
+    """N should appear even when Omega=0, as it does not depend on rotation."""
+    result = check_scales(Lx=0.8, Ly=0.8, depth=0.2, Omega=0.0, delta_T=2.0)
+    assert "N" in result["numbers"]
+    assert result["numbers"]["N"] > 0
+
+
+def test_CFL_computed_without_Omega():
+    """CFL_h should be computed even when Omega=0."""
+    result = check_scales(Lx=0.8, Ly=0.8, depth=0.2, Omega=0.0, U=0.1, dt=1.0, dx=0.01)
+    assert "CFL_h" in result["numbers"]

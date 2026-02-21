@@ -213,6 +213,6 @@ params = translate_lab_params(Lx=0.8, Ly=0.8, depth=0.2, Omega=0.314, delta_T=2.
 scales = check_scales(Lx=0.8, Ly=0.8, depth=0.2, Omega=0.314, delta_T=2.0,
                       dx=params["derived"]["dx"], dy=params["derived"]["dy"],
                       dz=params["derived"]["dz"])
-# scales["numbers"]["Ek_v"] ~ 4e-4
+# scales["numbers"]["Ek_v"] ~ 4e-5
 # scales["flags"] contains aspect-ratio warning
 ```
