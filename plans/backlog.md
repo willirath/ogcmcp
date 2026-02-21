@@ -2,24 +2,86 @@
 
 Known limitations and deferred improvements, in no particular priority order.
 
-## short bullets, to be expanded into real backlog items
+---
 
-- Gotchas --> JSON? (Same for encoding other knowledge?)
-- Add docs/ or readme to experiment (reflecting the user request, considerations, discussion, etc)
-- Add tool for forcing file generation?
-- visualisation?
-- pixi task for each experiment the way to go? Consider making experiments self contained? (Later...)
-- ensure (via claude?) that readme etc. doesn't go stale
-- feed back knowledge / gotchas from setting up experiments
-- how to ensure tool use instread of direct reading? eg. 
+## Gotcha catalogue: expose as JSON
+
+**Where**: `src/domain/gotcha.py`
+
+**Problem**: The catalogue is a Python list-of-dicts, useful for `lookup_gotcha`
+but awkward to query from outside Python (e.g. from the MCP server, a web UI,
+or a shell script).
+
+**Fix**: Serialise the catalogue to `data/gotchas.json` at build time (or
+lazily on first call). The MCP server could expose a `list_gotchas` tool
+returning the full catalogue, and `lookup_gotcha` could operate on the JSON
+representation. Same pattern could apply to other static knowledge structures.
+
+---
+
+## Experiment readme
+
+**Where**: Each `experiments/<name>/` directory
+
+**Problem**: There is no record of why an experiment was set up — the user
+request, the scale analysis, the design choices, or the gotchas encountered
+during configuration.
+
+**Fix**: Write a `README.md` inside each experiment directory when the
+experiment is created. Should cover: scientific motivation, parameter choices
+and their justification, scale analysis summary, known issues or limitations.
+Could be generated (or at least scaffolded) by the system from the conversation
+that produced the experiment.
+
+---
+
+## Forcing file generation as a tool
+
+**Where**: `scripts/gen-*.py`, `src/tools.py`
+
+**Problem**: Binary forcing file generation (bathymetry, initial conditions,
+RBCS masks) is currently done by standalone scripts that are not accessible
+via the MCP interface.
+
+**Fix**: Wrap forcing file generation as a callable tool (or family of tools)
+exposed through the MCP server. Would allow an LLM to request "generate
+forcing files for this configuration" without needing to know the script path.
+Needs a well-defined interface for passing grid and physics parameters.
+
+---
+
+## Standard visualisation for experiment output
+
+**Where**: `scripts/` or a new `src/viz/` module
+
+**Problem**: Plotting experiment output (e.g. temperature cross-sections) is
+done ad hoc in a Python one-off. There is no standard way to produce a
+diagnostic plot for a completed experiment.
+
+**Fix**: A `plot_experiment.py` script (or pixi task) that reads MNC output
+and produces a standard set of plots: surface map, radius–depth cross-section,
+time series of domain-mean temperature. Output goes to `experiments/<name>/fig/`.
+
+---
+
+## Tool use vs. direct file reads
+
+**Where**: System prompt / CLAUDE.md
+
+**Problem**: Claude sometimes reads MITgcm source directly via Bash (`sed`,
+`cat`) rather than through the MCP tools (`get_source_tool`,
+`get_subroutine_tool`). The MCP tools provide structured context and respect
+the indexed representation; direct reads bypass them and can silently mislead.
+
+**Example**:
 ```
- Bash(sed -n '80,130p' /Users/wrath/src/github.com/willirath/2026-dtg/MITg
-      cm/pkg/rbcs/rbcs_add_tendency.F)                      
-  ⎿            gTendency(i,j) = gTendency(i,j)                             
-          &       - RBC_maskV(i,j,k,bi,bj)*rec_tauRlx                   
-          &        *( vVel(i,j,k,bi,bj)- RBCvVel(i,j,k,bi,bj) )            
-     … +24 lines (ctrl+o to expand)                             
+Bash(sed -n '80,130p' MITgcm/pkg/rbcs/rbcs_add_tendency.F)
 ```
+should be replaced by `get_source_tool("rbcs_add_tendency")`.
+
+**Fix**: Strengthen CLAUDE.md instructions to prohibit direct MITgcm source
+reads when an MCP tool exists for the same purpose. Could also add a hook that
+warns when `MITgcm/` appears in a Bash command.
 
 ---
 
@@ -72,7 +134,6 @@ hardcoded to localhost via the `ollama` client default). One-liner in
 
 ---
 
-
 ## INI_PARMS conflates "reads from namelist" with "uses the parameter"
 
 **Where**: `namelist_refs` table, `namelist_to_code` tool
@@ -86,4 +147,4 @@ in a `&PARM02` block there), but the semantically useful answer is often
 `namelist_to_code` finds declaration sites, not use sites. A follow-on
 `get_callers` / semantic search step is needed to find the subroutine that
 acts on the value. Could also add a `uses_variable` tool that searches
-source_text for bare references to a variable name (imprecise but useful).
+`source_text` for bare references to a variable name (imprecise but useful).

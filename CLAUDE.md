@@ -48,6 +48,23 @@ data/                generated artifacts (gitignored)
 - Do not invent paper citations or model names — flag uncertainty explicitly
 - If unsure whether a package/model exists, say so rather than guessing
 
+## MITgcm source lookups
+
+When investigating MITgcm package behaviour, always use the MCP tools before
+reaching for Bash grep/sed on MITgcm source files:
+
+| Question | Use this tool first |
+|---|---|
+| What does subroutine X do / what is its source? | `get_source_tool("X")` |
+| What namelist parameters does subroutine X read? | `namelist_to_code("param")` |
+| What CPP flags guard subroutine X? | `get_cpp_requirements_tool("X")` |
+| What compile-time flags does package P expose? | `get_package_flags_tool("P")` |
+| General question about a package or behaviour | `search_code_tool("...")` |
+
+Direct reads of `MITgcm/pkg/` via Bash (`grep`, `sed`, `cat`) are a last
+resort — for things not in the index (e.g. header-only `.h` files with no
+subroutine, error message strings).
+
 ## Code style
 
 - Prefer simple and focused over abstracted and general

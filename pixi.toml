@@ -20,6 +20,8 @@ run-rotating-convection   = "bash scripts/run-experiment.sh experiments/rotating
 
 [dependencies]
 python = "3.13.*"
+matplotlib = ">=3.9, <4"
+netcdf4 = ">=1.7, <2"
 
 [pypi-dependencies]
 duckdb = ">=1.4.4, <2"
