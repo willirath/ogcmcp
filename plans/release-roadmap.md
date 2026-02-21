@@ -62,16 +62,16 @@ Reorganise the Docker setup and produce the self-contained MCP image.
 
 Tag, publish, and verify.
 
-- [ ] Add `package-rotating-convection` task to `pixi.toml`
-- [ ] Write `docs/release.md` — release process documentation
-- [ ] Rebuild `mitgcm:latest` with Debian+MPICH; verify full rotating_convection build+run
-- [ ] Rebuild `mitgcm-mcp:latest`; smoke test `docker run --rm -i`
-- [ ] `docker login ghcr.io` with PAT (packages:write)
-- [ ] Push MCP image to GHCR (`v2026.02.1` + `latest`)
+- [x] Add `package-rotating-convection` task to `pixi.toml`
+- [x] Write `docs/release.md` — release process documentation
+- [x] Rebuild `mitgcm:latest` with Debian+MPICH; verify full rotating_convection build+run
+- [x] Rebuild `mitgcm-mcp:latest`; smoke test `docker run --rm -i`
+- [x] `docker login ghcr.io` with PAT (packages:write)
+- [x] Push MCP image to GHCR (`v2026.02.1` + `latest`)
 - [ ] Set GHCR package visibility to public
-- [ ] Package `rotating_convection.tar.gz` (`pixi run package-rotating-convection`)
+- [x] Package `rotating_convection.tar.gz` (`pixi run package-rotating-convection`)
 - [ ] Create GitHub release `v2026.02.1` with tar.gz asset and image install note
-- [ ] Smoke test on clean machine: install via `claude mcp add`, verify tool responses
+- [ ] Smoke test on clean machine: install via `claude mcp add`/`codex mcp add`, verify tool responses
 - [ ] Git tag `v2026.02.1` and push
 
 **Done when:** A user on a clean machine can install the MCP server with one
