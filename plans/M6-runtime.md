@@ -3,9 +3,31 @@
 ## Purpose
 
 Provide a reproducible, compile-on-demand build and run environment for
-MITgcm experiments. The container is the toolchain; the experiment directory
-is the workspace. Works locally via Docker; translates directly to Singularity
-on HPC (no daemon, no privileged mode needed for the run step).
+MITgcm experiments with real MPI parallelism from the start. The container
+is the toolchain; the experiment directory is the workspace. Works locally
+via Docker; translates directly to Singularity on HPC.
+
+---
+
+## CI image review findings
+
+MITgcm's own CI uses `mitgcm/testreport-images:ubuntu_18_04_villon` —
+Ubuntu 18.04, EOL, no MPI, serial runs only. Their `testreport` harness
+wraps genmake2/make/run but doesn't exercise MPI communication. We go
+beyond this from the start.
+
+Key quirks from the `linux_amd64_gfortran` optfile (the one CI uses, which
+we reuse):
+- `MPI=true` env var switches compilers from `gfortran`→`mpif77`/`mpif90`
+  and `gcc`→`mpicc`. Must be set before calling genmake2 and make.
+- `-fconvert=big-endian` — in the optfile, required for MITgcm's raw binary
+  I/O (`.bin` files). Non-negotiable.
+- `-fallow-argument-mismatch` — added for gfortran ≥ 10 by the optfile's
+  version detection. A modern Debian/Ubuntu base (gfortran 12+) needs this
+  or the build fails on MITgcm's F77-style mixed-type calls.
+- `-mcmodel=medium` — in the optfile; needed for large grids.
+
+We reuse `linux_amd64_gfortran` as-is; no custom optfile needed.
 
 ---
 
@@ -13,65 +35,54 @@ on HPC (no daemon, no privileged mode needed for the run step).
 
 ### Container role
 
-The image provides:
-- gfortran, OpenMPI, NetCDF-Fortran (build toolchain)
-- MITgcm source tree (mounted from the submodule, not baked in)
-- genmake2 entry point
-
-The image does NOT contain:
-- A pre-compiled binary (grid dimensions are compile-time constants in SIZE.h)
-- Any experiment-specific files
+The image provides the toolchain only:
+- gfortran, OpenMPI, NetCDF-Fortran
+- No MITgcm source baked in (mounted from the submodule)
+- No experiment files
 
 ### Experiment directory layout
 
-An experiment directory follows MITgcm convention:
-
 ```
 experiments/<name>/
-├── code/
-│   ├── CPP_OPTIONS.h
+├── code/           committed — genmake2 -mods source
 │   ├── SIZE.h
+│   ├── CPP_OPTIONS.h
 │   ├── packages.conf
-│   └── <any custom .F overrides>
-├── input/
+│   └── <custom .F overrides>
+├── input/          text files committed; .bin files NOT committed
 │   ├── data
 │   ├── data.pkg
 │   ├── eedata
-│   └── <binary .bin initial condition files>
-└── build/        (created by pixi run build-experiment)
+│   └── *.bin       gitignored — copied from submodule or generated
+├── build/          gitignored — genmake2/make output
+└── run/            gitignored — mitgcmuv output
 ```
 
-The system does not dictate how `input/` is populated beyond the above
-structure. Binary `.bin` files are generated separately (M7 concern).
-
-### pixi tasks
-
-```
-pixi run build-image          # docker build → mitgcm:latest
-pixi run build-experiment DIR # compile mitgcmuv for experiments/<DIR>/
-pixi run run-experiment DIR   # run mitgcmuv in experiments/<DIR>/run/
-```
-
-`build-experiment` and `run-experiment` accept the experiment directory as
-a positional argument. They fail with a clear message if the directory does
-not exist or is missing required subdirectories.
-
-### Volume mounts (docker run)
+### Volume mounts (`docker run`)
 
 | Host path | Container path | Purpose |
 |---|---|---|
-| `./MITgcm` | `/MITgcm` | Source tree (read-only) |
+| `./MITgcm` | `/MITgcm:ro` | Source tree (read-only) |
 | `./experiments/<name>` | `/experiment` | Experiment workspace (read-write) |
 
-The container runs as the host user (via `--user $(id -u):$(id -g)`) so
-output files are owned correctly.
+Container runs as the host user (`--user $(id -u):$(id -g)`) so output
+files are owned correctly.
+
+### MPI: two processes from the start
+
+`SIZE.h` encodes MPI layout at compile time via `nPx`/`nPy`. The done-when
+experiment uses `nPx=2, nSx=2` so two MPI processes each own two tiles.
+Run with `mpirun --allow-run-as-root -np ${MITGCM_NP:-2}` (the
+`--allow-run-as-root` flag is needed when Docker runs as root, which is the
+default; our `--user` flag avoids this on Linux but may be needed on some
+setups — include it unconditionally for robustness).
 
 ### Build step (inside container)
 
 ```sh
 mkdir -p /experiment/build
 cd /experiment/build
-/MITgcm/tools/genmake2 \
+MPI=true /MITgcm/tools/genmake2 \
     -mods /experiment/code \
     -optfile /MITgcm/tools/build_options/linux_amd64_gfortran \
     -mpi
@@ -88,10 +99,8 @@ mkdir -p /experiment/run
 cd /experiment/run
 ln -sf /experiment/build/mitgcmuv .
 ln -sf /experiment/input/* .
-mpirun -np 1 ./mitgcmuv
+mpirun --allow-run-as-root -np ${MITGCM_NP:-2} ./mitgcmuv
 ```
-
-`-np 1` by default; overrideable via `MITGCM_NP` env variable.
 
 ---
 
@@ -99,102 +108,187 @@ mpirun -np 1 ./mitgcmuv
 
 ### `Dockerfile`
 
-Multi-stage build:
+```dockerfile
+FROM ubuntu:24.04
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gfortran \
+    libopenmpi-dev \
+    openmpi-bin \
+    libnetcdf-dev \
+    libnetcdff-dev \
+    make \
+    perl \
+    && rm -rf /var/lib/apt/lists/*
+```
 
-**Stage 1 — toolchain** (based on `debian:bookworm-slim`):
-- Install: `gfortran libopenmpi-dev openmpi-bin libnetcdf-dev libnetcdff-dev make perl`
-- No MITgcm source baked in
+Single stage — no build/runtime split needed for a science container.
 
-Single stage is sufficient (no need to shed build deps — this is a science
-container, not a production service).
+On Apple Silicon the host runs Linux/amd64 via Rosetta. Add
+`--platform linux/amd64` to `docker build` and `docker run` calls, or set
+`DOCKER_DEFAULT_PLATFORM=linux/amd64` in the environment. Document this.
 
 ### `scripts/build-experiment.sh`
 
-Wrapper that:
-1. Validates `$1` is a directory with `code/` and `input/` subdirectories
-2. Runs `docker run` with appropriate mounts and the build command above
-3. Exits with the container's exit code
+```sh
+#!/usr/bin/env bash
+set -euo pipefail
+EXP=${1:?Usage: build-experiment.sh <experiment-dir>}
+EXP_ABS=$(realpath "$EXP")
+REPO=$(realpath "$(dirname "$0")/..")
+docker run --rm \
+  --platform linux/amd64 \
+  --user "$(id -u):$(id -g)" \
+  -v "$REPO/MITgcm:/MITgcm:ro" \
+  -v "$EXP_ABS:/experiment" \
+  mitgcm:latest bash -c "
+    mkdir -p /experiment/build && cd /experiment/build &&
+    MPI=true /MITgcm/tools/genmake2 \
+      -mods /experiment/code \
+      -optfile /MITgcm/tools/build_options/linux_amd64_gfortran \
+      -mpi &&
+    make depend && make -j\$(nproc)"
+```
 
 ### `scripts/run-experiment.sh`
 
-Wrapper that:
-1. Validates `$1` has `build/mitgcmuv`
-2. Runs `docker run` with mounts and the run command above
-3. Streams stdout/stderr (no `-d`)
+```sh
+#!/usr/bin/env bash
+set -euo pipefail
+EXP=${1:?Usage: run-experiment.sh <experiment-dir>}
+EXP_ABS=$(realpath "$EXP")
+REPO=$(realpath "$(dirname "$0")/..")
+NP=${MITGCM_NP:-2}
+docker run --rm \
+  --platform linux/amd64 \
+  --user "$(id -u):$(id -g)" \
+  -v "$REPO/MITgcm:/MITgcm:ro" \
+  -v "$EXP_ABS:/experiment" \
+  mitgcm:latest bash -c "
+    mkdir -p /experiment/run && cd /experiment/run &&
+    ln -sf /experiment/build/mitgcmuv . &&
+    ln -sf /experiment/input/* . &&
+    mpirun --allow-run-as-root -np $NP ./mitgcmuv"
+```
+
+### `scripts/setup-tutorial.sh`
+
+Copies binary input files from the MITgcm submodule into the committed
+experiment directory (`.bin` files are gitignored in `experiments/`):
+
+```sh
+#!/usr/bin/env bash
+set -euo pipefail
+REPO=$(realpath "$(dirname "$0")/..")
+SRC="$REPO/MITgcm/verification/tutorial_rotating_tank/input"
+DST="$REPO/experiments/tutorial_rotating_tank/input"
+cp "$SRC/bathyPolR.bin" "$DST/"
+cp "$SRC/thetaPolR.bin" "$DST/"
+echo "Binary input files copied to $DST"
+```
+
+### `experiments/tutorial_rotating_tank/`
+
+Committed files:
+
+**`code/SIZE.h`** — modified from the tutorial for `nPx=2`:
+```fortran
+PARAMETER (
+&           sNx =  30,
+&           sNy =  23,
+&           OLx =   3,
+&           OLy =   3,
+&           nSx =   2,   ! was 4
+&           nSy =   1,
+&           nPx =   2,   ! was 1
+&           nPy =   1,
+&           Nx  = sNx*nSx*nPx,
+&           Ny  = sNy*nSy*nPy,
+&           Nr  =  29)
+```
+
+`Nx = 30*2*2 = 120`, `Ny = 23*1*1 = 23` — unchanged from original.
+
+**`code/CPP_OPTIONS.h`**, **`code/packages.conf`**, **`code/apply_forcing.F`**,
+**`code/DIAGNOSTICS_SIZE.h`** — copied verbatim from
+`MITgcm/verification/tutorial_rotating_tank/code/`.
+
+**`input/data`**, **`input/data.pkg`**, **`input/data.mnc`**,
+**`input/eedata`** — copied verbatim from
+`MITgcm/verification/tutorial_rotating_tank/input/`.
+
+**`input/bathyPolR.bin`**, **`input/thetaPolR.bin`** — gitignored; provided
+by `scripts/setup-tutorial.sh`.
+
+### `.gitignore` additions
+
+```
+experiments/*/input/*.bin
+experiments/*/build/
+experiments/*/run/
+```
 
 ### `pixi.toml` additions
 
 ```toml
-[tasks]
-build-image      = "docker build -t mitgcm:latest ."
-build-experiment = { cmd = "scripts/build-experiment.sh", args = ["DIR"] }
-run-experiment   = { cmd = "scripts/run-experiment.sh",   args = ["DIR"] }
+build-image       = "docker build --platform linux/amd64 -t mitgcm:latest ."
+setup-tutorial    = "bash scripts/setup-tutorial.sh"
+build-tutorial    = "bash scripts/build-experiment.sh experiments/tutorial_rotating_tank"
+run-tutorial      = "bash scripts/run-experiment.sh experiments/tutorial_rotating_tank"
 ```
-
-Note: pixi tasks cannot easily forward arbitrary positional args. Use shell
-scripts that read `$1`; invoke as `pixi run build-experiment -- rotating_tank`.
-Alternatively, use plain `bash scripts/build-experiment.sh <DIR>` and document
-this clearly in the docs.
 
 ### `docs/runtime.md`
 
 Cover:
-- Prerequisites (Docker installed and running)
-- How to build the image (`pixi run build-image`)
-- Experiment directory layout
-- How to build and run an experiment
-- How to translate to Singularity on HPC (drop-in: `singularity exec` instead
-  of `docker run`, same mounts via `--bind`)
-- Known limitation: SIZE.h is compiled in — changing grid dimensions requires
-  a rebuild
+- Prerequisites (Docker ≥ 20, `pixi run build-image`)
+- Apple Silicon note (`--platform linux/amd64`, Rosetta)
+- Experiment directory layout and the committed/gitignored split
+- `pixi run setup-tutorial` → `build-tutorial` → `run-tutorial` workflow
+- Singularity translation (drop-in: `singularity exec --bind` same mounts)
+- Known limitation: SIZE.h is compiled in — different process counts or grid
+  dimensions require a rebuild
+- `MITGCM_NP` env variable to override process count
 
 ---
 
 ## Done-when
 
-`verification/tutorial_rotating_tank` runs to completion inside the container
-and produces output files.
+```sh
+pixi run build-image
+pixi run setup-tutorial
+pixi run build-tutorial    # produces experiments/tutorial_rotating_tank/build/mitgcmuv
+pixi run run-tutorial      # 20 time steps, mpirun -np 2, monitor output to stdout
+```
 
-Concretely:
-1. `pixi run build-image` succeeds
-2. Copy the tutorial into `experiments/tutorial_rotating_tank/` (symlink or
-   copy `code/` and `input/` from `MITgcm/verification/tutorial_rotating_tank/`)
-3. `bash scripts/build-experiment.sh tutorial_rotating_tank` produces
-   `experiments/tutorial_rotating_tank/build/mitgcmuv`
-4. `bash scripts/run-experiment.sh tutorial_rotating_tank` runs to completion
-   (20 time steps per the tutorial's `data` namelist) and writes monitor output
-   to stdout and `mnc_test_*/` files in `experiments/tutorial_rotating_tank/run/`
+Run completes without error and `experiments/tutorial_rotating_tank/run/`
+contains `mnc_test_*/` NetCDF output files and pickup files.
 
 ---
 
 ## Singularity translation (HPC note)
 
 ```sh
-# Build image locally, export to .sif
+# Build locally, export
 docker save mitgcm:latest | gzip > mitgcm.tar.gz
 singularity build mitgcm.sif docker-archive://mitgcm.tar.gz
 
-# Run on HPC (no daemon required)
+# Run on HPC (no daemon)
 singularity exec \
   --bind ./MITgcm:/MITgcm:ro \
   --bind ./experiments/my_exp:/experiment \
   mitgcm.sif bash /experiment/build.sh
 ```
 
-No code changes needed — same scripts, same mounts.
-
 ---
 
 ## Open questions (not blocking M6)
 
-- **optfile**: `linux_amd64_gfortran` assumes x86. On ARM (Apple Silicon +
-  Rosetta or native Linux ARM), a different optfile or `--platform linux/amd64`
-  flag for Docker is needed. Document in `docs/runtime.md`.
-- **MPI process count**: single-process run is sufficient for M6. Tiling
-  (SIZE.h `nPx`/`nPy`) and `mpirun -np N` can be introduced in M7.
-- **Binary input files**: the tutorial ships `bathyPolR.bin` and `thetaPolR.bin`.
-  For new experiments, these need to be generated (numpy + `>.tofile()`). This
+- **Binary input generation**: for new experiments (M7), initial conditions
+  and bathymetry are generated with numpy (`array.astype('>f4').tofile(path)`).
+  The rotating tank tutorial shows the format: raw big-endian float32, shape
+  `(Ny, Nx)` for bathy and `(Nr, Ny, Nx)` for 3-D fields.
+- **MPI process count vs grid**: `nPx * nSx * sNx = Nx` must hold. For
+  arbitrary experiments, the user chooses `nPx`/`nPy` and the build script
+  uses `MITGCM_NP = nPx * nPy` automatically (M7 concern).
+- **Diagnostics output**: the tutorial uses MNC. Plain binary pickup files
+  and stdout monitor output are always produced regardless. Reading output
   is an M7 concern.
-- **Output format**: the tutorial uses MNC (NetCDF via the `mnc` package).
-  Plain binary pickup files and monitor output are always produced. Diagnostics
-  output (via `data.diagnostics`) is optional. M7 will decide what to read.

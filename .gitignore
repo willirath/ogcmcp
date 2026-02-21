@@ -12,3 +12,8 @@ data/*
 # Python cache
 __pycache__/
 *.pyc
+
+# experiment generated files
+experiments/*/input/*.bin
+experiments/*/build/
+experiments/*/run/

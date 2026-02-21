@@ -87,11 +87,12 @@ First version of the tank-specific knowledge layer.
 
 Containerised MITgcm build that runs locally via Docker and translates directly to Singularity on HPC.
 
-- [ ] `Dockerfile` — multi-stage build: gfortran + OpenMPI + NetCDF-Fortran, then compile MITgcm for a generic ocean configuration
-- [ ] `compose.yml` service (or standalone `docker build` / `docker run` wrappers) with a volume mount for experiment working directories
-- [ ] `pixi run build-mitgcm` task — builds the image
-- [ ] `pixi run run-experiment` task — takes a working directory, launches the container, streams stdout/stderr, exits with MITgcm's exit code
-- [ ] `docs/runtime.md`
+- [x] `Dockerfile` — single-stage: gfortran + OpenMPI + NetCDF-Fortran on Ubuntu 24.04
+- [x] `scripts/build-experiment.sh` and `scripts/run-experiment.sh` wrappers with volume mounts for MITgcm source and experiment directory
+- [x] `pixi run build-image` / `build-tutorial` / `run-tutorial` tasks
+- [x] `experiments/tutorial_rotating_tank/` — committed code and input text files; SIZE.h modified for nPx=2
+- [x] `scripts/setup-tutorial.sh` — copies binary input files from submodule
+- [x] `docs/runtime.md`
 
 **Done when:** `verification/tutorial_rotating_tank` runs to completion inside the container and produces output pickup files.
 
