@@ -101,14 +101,14 @@ pixi run serve
 │   ├── rotating_convection/   Worked example (README + gen.py + plot.py)
 │   └── tutorial_rotating_tank/
 ├── docker/
-│   ├── mitgcm/        MITgcm build image (gfortran + OpenMPI + NetCDF)
+│   ├── mitgcm/        MITgcm build image (gfortran + MPICH + NetCDF)
 │   └── mcp/           Self-contained MCP image (Ollama + model + indices)
 ├── scripts/           Build and run helpers for experiments
 ├── docs/              Implementation notes (one file per component)
 ├── plans/             Design docs and release roadmap
-├── MITgcm/            MITgcm source (git submodule, pinned)
+├── MITgcm/            MITgcm source (git submodule, pinned @ decd05a — checkpoint69k)
 ├── compose.yml        Ollama service for development
-├── .mcp.json          Claude Code MCP server config (dev: pixi run serve)
+├── .mcp.json          Claude Code MCP server config (points to GHCR image)
 └── data/              Generated artifacts — gitignored (index.duckdb, chroma/)
 ```
 

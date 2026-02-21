@@ -2,7 +2,7 @@
 # Not used by the released MCP image (Ollama runs inside the container).
 services:
   ollama:
-    image: ollama/ollama
+    image: ollama/ollama@sha256:0764cf55b4a33bcecca10f718394d097ef7d464b75669a14f0cd4ac1a8b9a0c5
     cpuset: "0-5"
     ports:
       - "11434:11434"

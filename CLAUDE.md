@@ -65,6 +65,10 @@ Direct reads of `MITgcm/pkg/` via Bash (`grep`, `sed`, `cat`) are a last
 resort — for things not in the index (e.g. header-only `.h` files with no
 subroutine, error message strings).
 
+## Docker
+
+- Pin all base images to a specific digest (`FROM image@sha256:...`) — never use floating tags like `latest` or `3.13-slim`
+
 ## Code style
 
 - Prefer simple and focused over abstracted and general

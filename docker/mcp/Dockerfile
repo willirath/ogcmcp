@@ -1,13 +1,13 @@
 # Stage 1: pull nomic-embed-text into /root/.ollama at build time.
 # The model weights (~274 MB) are baked into the image so users need no
 # separate download or Ollama installation.
-FROM ollama/ollama AS model-builder
+FROM ollama/ollama@sha256:0764cf55b4a33bcecca10f718394d097ef7d464b75669a14f0cd4ac1a8b9a0c5 AS model-builder
 RUN ollama serve & sleep 5 && ollama pull nomic-embed-text
 
 # Stage 2: runtime image.
 # Copy the Ollama binary and pre-pulled model from Stage 1, then add
 # Python 3.13 + runtime dependencies + pre-built indices.
-FROM python:3.13-slim
+FROM python:3.13-slim@sha256:3de9a8d7aedbb7984dc18f2dff178a7850f16c1ae7c34ba9d7ecc23d0755e35f
 
 # Ollama binary (statically compiled Go — works on any Linux/glibc)
 COPY --from=model-builder /usr/bin/ollama /usr/bin/ollama
