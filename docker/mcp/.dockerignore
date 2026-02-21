@@ -1,0 +1,10 @@
+.git
+MITgcm
+experiments
+tests
+scripts
+plans
+docs
+ollama_data
+**/__pycache__
+**/*.pyc

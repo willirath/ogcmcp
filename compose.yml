@@ -1,3 +1,5 @@
+# Development only — provides Ollama for pixi run embed / embed-docs.
+# Not used by the released MCP image (Ollama runs inside the container).
 services:
   ollama:
     image: ollama/ollama
@@ -6,3 +8,8 @@ services:
       - "11434:11434"
     volumes:
       - ./ollama_data:/root/.ollama
+    networks:
+      - mitgcm-net
+
+networks:
+  mitgcm-net:

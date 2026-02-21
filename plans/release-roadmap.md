@@ -10,11 +10,11 @@ in `release-architecture.md` and `release-tasks.md`.
 Consolidate the rotating_convection experiment into a self-contained,
 documented unit.
 
-- [ ] Move `scripts/gen-rotating-convection.py` → `experiments/rotating_convection/gen.py`
-- [ ] Add `experiments/rotating_convection/plot.py` (coordinate-fixed cross-section script)
-- [ ] Generate and commit `experiments/rotating_convection/T_section.png`
-- [ ] Write `experiments/rotating_convection/README.md`
-- [ ] Update `pixi.toml` `gen-rotating-convection` task path
+- [x] Move `scripts/gen-rotating-convection.py` → `experiments/rotating_convection/gen.py`
+- [x] Add `experiments/rotating_convection/plot.py` (coordinate-fixed cross-section script)
+- [x] Generate and commit `experiments/rotating_convection/T_section.png`
+- [x] Write `experiments/rotating_convection/README.md`
+- [x] Update `pixi.toml` `gen-rotating-convection` task path
 
 **Done when:** `experiments/rotating_convection/` contains README, gen.py,
 plot.py, T_section.png, and all existing input/code files; plot.py produces
@@ -26,12 +26,12 @@ the PNG from a completed run.
 
 Bring all docs up to date with M7/M8 reality.
 
-- [ ] Update `README.md` (milestone table, layout table, install section)
-- [ ] Update `docs/domain-knowledge.md` (M7 gotchas, check_scales fix)
-- [ ] Update `docs/mcp-server.md` (search_docs_tool, M5 domain tools)
-- [ ] Update `docs/tools.md` (search_docs)
-- [ ] Update `docs/runtime.md` (rotating_convection, docker/ tree)
-- [ ] Review all MCP tool docstrings in `src/server.py`
+- [x] Update `README.md` (milestone table, layout table, install section)
+- [x] Update `docs/domain-knowledge.md` (M7 gotchas, check_scales fix)
+- [x] Update `docs/mcp-server.md` (search_docs_tool, M5 domain tools)
+- [x] Update `docs/tools.md` (search_docs)
+- [x] Update `docs/runtime.md` (rotating_convection, docker/ tree)
+- [x] Review all MCP tool docstrings in `src/server.py`
 
 **Done when:** `pixi run test` passes and a fresh reader of README.md
 understands what the project does and how to install it.

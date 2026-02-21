@@ -1,0 +1,3 @@
+# The MITgcm runtime image COPYs nothing from the build context.
+# Exclude everything to keep the context transfer fast.
+*
