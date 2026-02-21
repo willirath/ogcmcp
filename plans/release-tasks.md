@@ -1,10 +1,9 @@
 # Release tasks — v0.1
 
 Checklist of concrete work to do before calling this a first release.
-Feedback sections marked `> **USER:**` — fill in inline.
+Open feedback sections marked `> **USER:**` — fill in inline.
 
-The architecture decisions in `plans/release-architecture.md` should be
-settled before starting the packaging items here.
+Architecture decisions are settled in `plans/release-architecture.md`.
 
 ---
 
@@ -34,8 +33,9 @@ Known gaps:
 - `docs/mcp-server.md` — check tool list includes `search_docs_tool` and the
   M5 domain tools
 - `docs/tools.md` — check `search_docs` is documented
-- No doc exists yet for the runtime (`docs/runtime.md` covers Docker build/run
-  but may not reflect the M7 rotating_convection experiment)
+- `docs/runtime.md` — covers Docker build/run but may not reflect the M7
+  rotating_convection experiment; also needs updating for the docker/ tree
+  reorganisation
 
 > **USER:**
 >
@@ -99,24 +99,21 @@ bug. The fixed version should live somewhere in the repo — either as a
 
 ---
 
-## Packaging (depends on release-architecture.md decisions)
+## Docker packaging
 
-These items cannot be started until the architecture questions are settled.
+Architecture is settled: self-contained image with Ollama, model, and indices
+baked in. See `plans/release-architecture.md`.
 
-- [ ] Add `pyproject.toml` (package metadata, entry points, dependencies)
-- [ ] Add `mitgcm-mcp download` CLI command (fetch pre-built indices)
-- [ ] Decide Ollama vs sentence-transformers; implement if switching
-- [ ] Pin MITgcm checkpoint in package metadata
-- [ ] Update `.mcp.json` to use packaged entry point
-- [ ] Upload pre-built indices to chosen host
-- [ ] Smoke test: `pip install .` + `mitgcm-mcp download` + `mitgcm-mcp serve`
-  in a clean environment
-
-> **USER:**
->
-> (Any packaging constraints not covered in release-architecture.md? Is there
-> a target Python version range? Any concern about the chromadb or duckdb
-> dependency footprint?)
+- [ ] Move `Dockerfile` → `docker/mitgcm/Dockerfile`
+- [ ] Create `docker/mcp/Dockerfile` (two-stage: pull model, then assemble image)
+- [ ] Create `docker/mcp/entrypoint.sh` (start `ollama serve`, then `python -m src.server`)
+- [ ] Create `docker/mcp/.dockerignore` (exclude `MITgcm/`, `.git/`, `tests/`, etc.)
+- [ ] Update `compose.yml` — add named network `mitgcm-net`; mark as dev-only in comments
+- [ ] Update `pixi.toml` — fix `build-image` path; add `build-mcp-image` task
+- [ ] Update `.mcp.json` — `docker run --rm -i ghcr.io/willirath/mitgcm-mcp:latest`
+- [ ] Build image locally (`pixi run build-mcp-image`) with populated `data/`
+- [ ] Publish image to GHCR; set package visibility to public
+- [ ] Smoke test: fresh machine, `claude mcp add --transport stdio --scope user mitgcm -- docker run --rm -i ghcr.io/willirath/mitgcm-mcp:latest`, verify tools respond
 
 ---
 
@@ -128,8 +125,8 @@ Current backlog has 8 items. Proposed disposition for v0.1:
 |---|---|
 | Gotchas → JSON | Post-v0.1 |
 | Experiment README | **Include** |
-| Forcing file gen as tool | Post-v0.1 — out of scope per architecture discussion |
-| Visualisation script | **Include** (simple fix) |
+| Forcing file gen as tool | Post-v0.1 — out of scope |
+| Visualisation script | **Include** |
 | Tool use enforcement | Done — CLAUDE.md updated |
 | CPP guard line attribution | Post-v0.1 — known limitation, documented |
 | GPU Ollama | Post-v0.1 — performance only |
@@ -144,16 +141,17 @@ Current backlog has 8 items. Proposed disposition for v0.1:
 
 ## Release checklist (summary)
 
-Once the above is done and architecture decisions are made:
-
 - [ ] All tests pass (`pixi run test`)
 - [ ] README.md reflects current state
 - [ ] All docs/ files consistent with implementation
 - [ ] Tool docstrings reviewed
 - [ ] `experiments/rotating_convection/README.md` written
 - [ ] Visualisation script committed
-- [ ] `pyproject.toml` added
-- [ ] Pre-built indices uploaded and `download` command works
-- [ ] `.mcp.json` updated
-- [ ] Clean-environment smoke test passes
+- [ ] `docker/mitgcm/Dockerfile` (moved from root)
+- [ ] `docker/mcp/Dockerfile` + `entrypoint.sh` + `.dockerignore`
+- [ ] `compose.yml` updated (named network, dev-only)
+- [ ] `pixi.toml` updated (paths + `build-mcp-image` task)
+- [ ] `.mcp.json` updated to `docker run` one-liner
+- [ ] Image built, published to GHCR, set public
+- [ ] Smoke test passes
 - [ ] Git tag `v0.1.0`
