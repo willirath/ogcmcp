@@ -101,6 +101,19 @@ modification.
 - Cross-section plot: `python experiments/rotating_convection/plot.py`,
   with embedded `T_section.png`
 
+### Standalone experiment archive
+
+Package `experiments/rotating_convection/` (input/, code/, gen.py, plot.py,
+README.md, T_section.png — no build/ or run/) as a GitHub release asset:
+`rotating_convection.tar.gz` (~8 MB).
+
+Include `scripts/build-experiment.sh` and `scripts/run-experiment.sh` in the
+archive so users have everything needed without cloning the repo. The
+experiment README documents the raw docker commands as well for users who
+prefer not to use the scripts.
+
+Users download, unpack, and run — no repo clone required.
+
 ---
 
 ## Docker packaging
@@ -152,5 +165,6 @@ baked in. See `plans/release-architecture.md`.
 - [ ] `pixi.toml` updated (paths + `build-mcp-image` task)
 - [ ] `.mcp.json` updated to `docker run` one-liner
 - [ ] Image built, published to GHCR, set public
+- [ ] `rotating_convection.tar.gz` release asset built and uploaded
 - [ ] Smoke test passes
 - [ ] Git tag `v0.1.0`
