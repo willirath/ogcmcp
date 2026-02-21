@@ -2,8 +2,9 @@
 
 ## Versioning
 
-CalVer: `YYYY.MM`. First release tag: `2026.02`. Image tag on GHCR: `2026.02`
-(and `latest`).
+CalVer: `vYYYY.MM.MICRO` (MICRO is a sequential counter starting at 1, reset
+each month). First release tag: `v2026.02.1`. Image tags on GHCR: `v2026.02.1`
+and `latest`.
 
 ---
 

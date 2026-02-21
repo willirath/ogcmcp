@@ -173,4 +173,4 @@ baked in. See `plans/release-architecture.md`.
 - [ ] Image built, published to GHCR, set public
 - [ ] `rotating_convection.tar.gz` release asset built and uploaded
 - [ ] Smoke test passes
-- [ ] Git tag `2026.02`
+- [ ] Git tag `v2026.02.1`
