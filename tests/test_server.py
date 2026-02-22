@@ -25,6 +25,7 @@ EXPECTED_TOOLS = {
     "lookup_gotcha_tool",
     "suggest_experiment_config_tool",
     "search_docs_tool",
+    "get_doc_source_tool",
     "get_workflow_tool",
 }
 

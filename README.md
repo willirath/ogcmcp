@@ -11,7 +11,7 @@ Requires [Claude Code](https://claude.ai/code) and Docker.
 
 ```bash
 claude mcp add --transport stdio --scope user mitgcm -- \
-  docker run --rm -i ghcr.io/willirath/mitgcm-mcp:v2026.02.1
+  docker run --rm -i ghcr.io/willirath/mitgcm-mcp:v2026.02.2
 ```
 
 Docker pulls the image on first use (~600 MB — includes Ollama, the embedding
@@ -45,7 +45,7 @@ Claude: The decomposition is entirely compile-time: SIZE.h sets nPx,
 
 ## What it does
 
-Sixteen tools across four layers. Call `get_workflow_tool` at the start of a
+Seventeen tools across four layers. Call `get_workflow_tool` at the start of a
 session to get a recommended tool sequence for your task.
 
 ### Code navigation
@@ -67,7 +67,8 @@ session to get a recommended tool sequence for your task.
 
 | Tool | What it does |
 |---|---|
-| `search_docs_tool` | Semantic search over MITgcm RST documentation |
+| `search_docs_tool` | Semantic search over MITgcm RST docs and verification headers |
+| `get_doc_source_tool` | Full text of a doc section or header file (use after `search_docs_tool`) |
 
 ### Domain knowledge
 
@@ -132,7 +133,7 @@ docker compose exec ollama ollama pull nomic-embed-text   # first time only
 # Build the indices
 pixi run index       # Fortran → DuckDB (~2 min)
 pixi run embed       # subroutines → ChromaDB (~45 min)
-pixi run embed-docs  # RST docs → ChromaDB (~5 min)
+pixi run embed-docs  # RST docs + verification headers → ChromaDB (~90 min on CPU)
 
 # Run tests
 pixi run test

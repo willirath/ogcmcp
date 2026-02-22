@@ -254,6 +254,59 @@ def get_package_flags(package_name: str, _db_path: Path = DB_PATH) -> list[dict]
     return [{"cpp_flag": r[0], "description": r[1]} for r in rows]
 
 
+def get_doc_source(
+    file: str,
+    section: str,
+    offset: int = 0,
+    limit: int = 200,
+    _chroma_path: Path = CHROMA_PATH,
+) -> dict | None:
+    """Return paginated text of a documentation section or header file.
+
+    Retrieves all stored chunks for (file, section), reassembles them in
+    chunk order (respecting overlap), and returns paginated lines.
+
+    Use search_docs to discover file and section values.
+    Returns {file, section, total_lines, offset, lines} or None if not found.
+    """
+    from .embedder.pipeline import OVERLAP
+
+    collection = get_docs_collection(_chroma_path)
+    results = collection.get(
+        where={"$and": [{"file": {"$eq": file}}, {"section": {"$eq": section}}]},
+        include=["metadatas", "documents"],
+    )
+
+    if not results["ids"]:
+        return None
+
+    chunks = sorted(
+        zip(results["metadatas"], results["documents"]),
+        key=lambda x: x[0]["chunk_index"],
+    )
+
+    # Strip the prepended header ("[file] section\n" or "[file]\n") from each chunk.
+    header = f"[{file}] {section}\n" if section else f"[{file}]\n"
+    header_len = len(header)
+    raw_chunks = [doc[header_len:] for _, doc in chunks]
+
+    # Reassemble: chunk 0 is taken in full; each subsequent chunk overlaps
+    # the previous by OVERLAP chars, so skip those chars when concatenating.
+    text = raw_chunks[0]
+    for raw in raw_chunks[1:]:
+        text += raw[OVERLAP:]
+
+    all_lines = text.splitlines()
+    total = len(all_lines)
+    return {
+        "file": file,
+        "section": section,
+        "total_lines": total,
+        "offset": offset,
+        "lines": all_lines[offset: offset + limit],
+    }
+
+
 def search_docs(query: str, top_k: int = 5, _chroma_path: Path = CHROMA_PATH) -> list[dict]:
     """Semantic search over MITgcm documentation sections.
 

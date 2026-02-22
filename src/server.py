@@ -8,6 +8,7 @@ from src.tools import (
     get_callees,
     get_callers,
     get_cpp_requirements,
+    get_doc_source,
     get_package_flags,
     get_subroutine,
     namelist_to_code,
@@ -346,6 +347,23 @@ def get_workflow_tool(task: str | None = None) -> dict:
         Each step has {tool, purpose}. Empty dict if task not recognised.
     """
     return get_workflow(task)
+
+
+@mcp.tool()
+def get_doc_source_tool(file: str, section: str, offset: int = 0, limit: int = 200) -> dict | None:
+    """Return paginated text of a documentation section or header file.
+
+    Use search_docs_tool to discover file and section values, then call this
+    to read the full content. Mirrors get_source_tool for subroutines.
+
+    file    : as returned by search_docs_tool (e.g. "verification/rotating_tank/code/SIZE.h")
+    section : as returned by search_docs_tool (e.g. "SIZE.h" or an RST heading)
+    offset  : first line to return (0-based)
+    limit   : maximum lines to return (default 200)
+
+    Returns {file, section, total_lines, offset, lines} or None if not found.
+    """
+    return get_doc_source(file, section, offset=offset, limit=limit)
 
 
 @mcp.tool()
