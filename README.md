@@ -46,6 +46,32 @@ User: What namelist parameter controls the non-hydrostatic pressure solver
   ["ALLOW_NONHYDROST"]
 ```
 
+## Architecture
+
+```mermaid
+flowchart TB
+    Q["User query"] --> C["Claude"]
+    C -->|"tool calls · stdio · Docker"| S["MCP server"]
+    S --> CG["Code graph<br/>(DuckDB)"]
+    S --> SI["Semantic index<br/>(ChromaDB + Ollama)"]
+    S --> DK["Domain knowledge<br/>(scales · gotchas · configs)"]
+```
+
+## Docs
+
+| File | Covers |
+|---|---|
+| [`docs/mcp-server.md`](docs/mcp-server.md) | MCP server, all tools, integration |
+| [`docs/tools.md`](docs/tools.md) | Query tool functions and return shapes |
+| [`docs/domain-knowledge.md`](docs/domain-knowledge.md) | Domain knowledge layer |
+| [`docs/runtime.md`](docs/runtime.md) | MITgcm Docker runtime, experiments |
+| [`docs/release.md`](docs/release.md) | Release process (build, push, tag, publish) |
+| [`docs/duckdb.md`](docs/duckdb.md) | Code graph schema, example queries |
+| [`docs/chromadb.md`](docs/chromadb.md) | Embedding pipeline, chunking |
+| [`docs/docs-index.md`](docs/docs-index.md) | RST documentation index |
+| [`docs/parsing.md`](docs/parsing.md) | Fortran extraction approach |
+| [`docs/diagrams.md`](docs/diagrams.md) | Pipeline and query-time flow diagrams |
+
 ## Milestones
 
 | Milestone | What | Status |
@@ -112,22 +138,3 @@ pixi run serve
 └── data/              Generated artifacts — gitignored (index.duckdb, chroma/)
 ```
 
-## Docs
-
-| File | Covers |
-|---|---|
-| `docs/environment.md` | pixi setup, dependencies |
-| `docs/mitgcm-source.md` | git submodule, source layout |
-| `docs/embeddings.md` | Ollama Docker setup, embedding model |
-| `docs/parsing.md` | Fortran extraction approach |
-| `docs/duckdb.md` | Code graph schema, example queries |
-| `docs/indexer.md` | Indexer pipeline |
-| `docs/chromadb.md` | Embedding pipeline, chunking |
-| `docs/docs-index.md` | RST documentation index (M8) |
-| `docs/testing.md` | Test structure and conventions |
-| `docs/tools.md` | Query tool functions and return shapes |
-| `docs/domain-knowledge.md` | Domain knowledge layer |
-| `docs/mcp-server.md` | MCP server, all tools, integration |
-| `docs/runtime.md` | MITgcm Docker runtime, experiments |
-| `docs/diagrams.md` | Pipeline and query-time flow diagrams |
-| `docs/release.md` | Release process (build, push, tag, publish) |
