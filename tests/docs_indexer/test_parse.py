@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from src.docs_indexer.parse import _clean_text, _is_underline, _split_sections, iter_sections
+from src.docs_indexer.parse import _clean_text, _is_underline, _split_sections, iter_headers, iter_sections
 
 
 # ── _is_underline ──────────────────────────────────────────────────────────────
@@ -189,3 +189,66 @@ def test_iter_sections_empty_rst_skipped(tmp_doc_root):
     sections = iter_sections(tmp_doc_root)
     files = {s["file"] for s in sections}
     assert "empty.rst" not in files
+
+
+# ── iter_headers ───────────────────────────────────────────────────────────────
+
+@pytest.fixture
+def tmp_verification_root(tmp_path):
+    """Minimal synthetic verification tree with two experiments."""
+    mitgcm = tmp_path / "MITgcm"
+    for exp in ("rotating_tank", "basin"):
+        code = mitgcm / "verification" / exp / "code"
+        code.mkdir(parents=True)
+        (code / "SIZE.h").write_text(
+            f"C experiment {exp}\n"
+            f"      INTEGER sNx\n"
+            f"      PARAMETER ( sNx = 30 )\n"
+        )
+        (code / "CPP_OPTIONS.h").write_text(
+            f"C CPP options for {exp}\n"
+            f"#define ALLOW_DIAGNOSTICS\n"
+        )
+    # Empty file — should be skipped.
+    (mitgcm / "verification" / "rotating_tank" / "code" / "empty.h").write_text("   \n")
+    return mitgcm / "verification"
+
+
+def test_iter_headers_finds_files(tmp_verification_root):
+    headers = iter_headers(tmp_verification_root)
+    filenames = {h["file"] for h in headers}
+    assert any("rotating_tank/code/SIZE.h" in f for f in filenames)
+    assert any("basin/code/SIZE.h" in f for f in filenames)
+
+
+def test_iter_headers_section_is_filename(tmp_verification_root):
+    headers = iter_headers(tmp_verification_root)
+    sections = {h["section"] for h in headers}
+    assert "SIZE.h" in sections
+    assert "CPP_OPTIONS.h" in sections
+
+
+def test_iter_headers_file_relative_to_mitgcm(tmp_verification_root):
+    headers = iter_headers(tmp_verification_root)
+    for h in headers:
+        assert h["file"].startswith("verification/")
+
+
+def test_iter_headers_text_nonempty(tmp_verification_root):
+    headers = iter_headers(tmp_verification_root)
+    for h in headers:
+        assert h["text"].strip()
+
+
+def test_iter_headers_skips_empty_files(tmp_verification_root):
+    headers = iter_headers(tmp_verification_root)
+    filenames = {h["file"] for h in headers}
+    assert not any("empty.h" in f for f in filenames)
+
+
+def test_iter_headers_has_required_keys(tmp_verification_root):
+    headers = iter_headers(tmp_verification_root)
+    for h in headers:
+        assert "file" in h
+        assert "section" in h
+        assert "text" in h

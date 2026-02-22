@@ -24,9 +24,10 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 from ..embedder.pipeline import _chunk_text, EMBED_MODEL, BATCH_SIZE, MAX_CHARS, OVERLAP
 from ..embedder.store import CHROMA_PATH, get_docs_collection
-from .parse import iter_sections
+from .parse import iter_headers, iter_sections
 
 DOC_ROOT = Path("MITgcm/doc")
+VERIFICATION_ROOT = Path("MITgcm/verification")
 
 
 def _doc_chunks(
@@ -52,17 +53,25 @@ def _doc_chunks(
     ]
 
 
-def run(doc_root: Path = DOC_ROOT, chroma_path: Path = CHROMA_PATH) -> None:
+def run(
+    doc_root: Path = DOC_ROOT,
+    verification_root: Path = VERIFICATION_ROOT,
+    chroma_path: Path = CHROMA_PATH,
+) -> None:
     sections = iter_sections(doc_root)
     log.info(f"Parsed {len(sections)} sections from {doc_root}")
+
+    headers = iter_headers(verification_root)
+    log.info(f"Found {len(headers)} .h files under {verification_root}")
 
     collection = get_docs_collection(chroma_path)
 
     all_chunks = []
     for idx, sec in enumerate(sections):
-        section_id = f"doc_{idx}"
-        all_chunks.extend(_doc_chunks(section_id, sec["file"], sec["section"], sec["text"]))
-    log.info(f"Generated {len(all_chunks)} chunks from {len(sections)} sections")
+        all_chunks.extend(_doc_chunks(f"doc_{idx}", sec["file"], sec["section"], sec["text"]))
+    for idx, hdr in enumerate(headers):
+        all_chunks.extend(_doc_chunks(f"hdr_{idx}", hdr["file"], hdr["section"], hdr["text"]))
+    log.info(f"Generated {len(all_chunks)} chunks from {len(sections)} sections and {len(headers)} headers")
 
     total = 0
     for i in range(0, len(all_chunks), BATCH_SIZE):

@@ -117,6 +117,31 @@ def _split_sections(lines: list[str]) -> list[tuple[str, list[str]]]:
     return sections
 
 
+def iter_headers(verification_root: Path) -> list[dict]:
+    """Return one dict per .h file found under verification_root/*/code/.
+
+    Each dict has keys:
+        file    – path relative to verification_root.parent (str, forward slashes)
+        section – filename (e.g. "SIZE.h")
+        text    – raw file content
+
+    Empty files are skipped. Paths are relative to the MITgcm root so that
+    search results identify both the experiment and the file name.
+    """
+    results = []
+    parent = verification_root.parent
+    for h_path in sorted(verification_root.glob("*/code/*.h")):
+        text = h_path.read_text(encoding="utf-8", errors="replace")
+        if not text.strip():
+            continue
+        results.append({
+            "file": h_path.relative_to(parent).as_posix(),
+            "section": h_path.name,
+            "text": text,
+        })
+    return results
+
+
 def iter_sections(doc_root: Path) -> list[dict]:
     """Return one dict per RST section found under doc_root.
 

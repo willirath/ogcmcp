@@ -4,35 +4,6 @@ Known limitations and deferred improvements, in no particular priority order.
 
 ---
 
-## Index verification `.h` files for tool-driven discovery
-
-**Where**: `src/docs_indexer/pipeline.py`, `src/docs_indexer/parse.py`
-
-**Problem**: `SIZE.h`, `DIAGNOSTICS_SIZE.h`, `CPP_OPTIONS.h`, and other
-headers from `MITgcm/verification/*/code/` are not indexed anywhere. The
-subroutine index only covers `.F`/`.F90`; the docs index only covers `.rst`.
-An agent asked to write a `SIZE.h` must rely on memory, which is the most
-common source of decomposition errors (wrong `OLx`, confused `nSx` vs `nPx`,
-etc.).
-
-The docs index already surfaces SIZE.h *prose* from tutorial RSTs, but only
-the customised lines, not complete files.
-
-**Fix**: In `docs_indexer/pipeline.py`, add a second walk over
-`MITgcm/verification/*/code/*.h`. Treat each file as a document with metadata
-`{file, experiment, section=filename}` and feed it through the same
-`_doc_chunks` → `collection.upsert` path already used for RST sections. No
-new collection, no new tool, no schema changes. After reindexing,
-`search_docs_tool("SIZE.h rotating tank")` returns the actual compilable
-header from a known-working experiment rather than prose describing it.
-
-This is the right pattern for the project's scope: the tools help agents
-*explore MITgcm resources*, and verification headers are a primary resource.
-Generating `SIZE.h` from a tool would narrow creative space; surfacing real
-examples lets the agent adapt them.
-
----
-
 ## Codex CLI support
 
 **Where**: `.mcp.json`, `README.md`, `docs/release.md`
