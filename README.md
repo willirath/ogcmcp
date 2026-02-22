@@ -36,14 +36,27 @@ baroclinic-instability experiments.
 ## Example
 
 ```
-User: What namelist parameter controls the non-hydrostatic pressure solver
-      iteration limit, and what CPP flag must be set?
+User: How does MITgcm handle MPI processes?
 
-→ namelist_to_code_tool("cg3dMaxIters")
-  [{"name": "CG3D", "namelist_group": "PARM03", ...}]
+Claude: MPI topology is set up at boot time. Let me trace
+        the initialization path.
 
-→ get_cpp_requirements_tool("CG3D")
-  ["ALLOW_NONHYDROST"]
+→ search_docs_tool("MPI parallel processing decomposition")
+  ["Machine model parallelism", "Tiles",
+   "Specifying a domain decomposition", ...]
+
+→ find_subroutines_tool("INI_PROCS")
+  [{"name": "INI_PROCS", "file": "eesupp/src/ini_procs.F", ...}]
+
+→ get_source_tool("EEBOOT_MINIMAL", limit=80)
+  [MPI_Init → MPI_Cart_create with nPx × nPy topology ...]
+
+→ get_source_tool("INI_PROCS", limit=100)
+  [MPI_Cart_coords per rank, MPI_Cart_rank for neighbour discovery ...]
+
+Claude: The decomposition is entirely compile-time: SIZE.h sets nPx,
+        nPy, nSx, nSy. The number of MPI ranks launched must equal
+        nPx × nPy — there is no runtime check until the model aborts.
 ```
 
 ## Architecture
