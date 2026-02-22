@@ -102,15 +102,9 @@ gh release create ${VERSION} \
   --title "MITgcm MCP ${VERSION}" \
   --notes "MCP image: \`ghcr.io/willirath/mitgcm-mcp:${VERSION}\`
 
-Install (Claude Code):
+Install:
 \`\`\`bash
 claude mcp add --transport stdio --scope user mitgcm -- \\
-  docker run --rm -i ghcr.io/willirath/mitgcm-mcp:${VERSION}
-\`\`\`
-
-Install (Codex CLI):
-\`\`\`bash
-codex mcp add mitgcm -- \\
   docker run --rm -i ghcr.io/willirath/mitgcm-mcp:${VERSION}
 \`\`\`
 
@@ -127,12 +121,7 @@ On a clean machine (or after removing the local image):
 ```bash
 docker rmi ghcr.io/willirath/mitgcm-mcp:v2026.02.1 2>/dev/null || true
 
-# Claude Code
 claude mcp add --transport stdio --scope user mitgcm -- \
-  docker run --rm -i ghcr.io/willirath/mitgcm-mcp:v2026.02.1
-
-# Codex CLI
-codex mcp add mitgcm -- \
   docker run --rm -i ghcr.io/willirath/mitgcm-mcp:v2026.02.1
 ```
 

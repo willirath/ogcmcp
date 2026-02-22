@@ -7,17 +7,10 @@ directly from the indexed source and docs.
 
 ## Install
 
-Requires Docker and one of:
+Requires [Claude Code](https://claude.ai/code) and Docker.
 
-**Claude Code:**
 ```bash
 claude mcp add --transport stdio --scope user mitgcm -- \
-  docker run --rm -i ghcr.io/willirath/mitgcm-mcp:v2026.02.1
-```
-
-**Codex CLI:**
-```bash
-codex mcp add mitgcm -- \
   docker run --rm -i ghcr.io/willirath/mitgcm-mcp:v2026.02.1
 ```
 

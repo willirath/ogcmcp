@@ -1,5 +1,21 @@
 # Backlog
 
+---
+
+## Codex CLI support
+
+**Where**: `.mcp.json`, `README.md`, `docs/release.md`
+
+**Problem**: `codex mcp add mitgcm -- docker run --rm -i ghcr.io/willirath/mitgcm-mcp:v2026.02.1`
+causes "Transport closed" on every tool call. Claude Code works fine with the
+same image and command. Root cause not yet diagnosed — possibly a difference in
+how Codex CLI handles stdio subprocess lifecycle or connection timeouts.
+
+**Fix**: Reproduce the failure, capture Codex stderr, and identify whether the
+issue is in Codex's MCP client, the entrypoint, or an incompatibility in the
+fastmcp stdio transport. Once fixed, add `codex mcp add` install instructions
+back to README and release docs.
+
 Known limitations and deferred improvements, in no particular priority order.
 
 ---
