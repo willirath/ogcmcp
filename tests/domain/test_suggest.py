@@ -81,3 +81,36 @@ def test_case_insensitive():
     result = suggest_experiment_config("ROTATING_CONVECTION")
     assert result is not None
     assert result["experiment_type"] == "rotating_convection"
+
+
+def test_has_quickstart():
+    """Result should include a quickstart key."""
+    result = suggest_experiment_config("rotating_convection")
+    assert "quickstart" in result
+
+
+def test_quickstart_has_build_and_run():
+    """quickstart should have build and run keys."""
+    qs = suggest_experiment_config("rotating_convection")["quickstart"]
+    assert "build" in qs
+    assert "run" in qs
+
+
+def test_quickstart_has_directory_structure():
+    """quickstart should have a directory_structure dict."""
+    qs = suggest_experiment_config("rotating_convection")["quickstart"]
+    assert "directory_structure" in qs
+    assert isinstance(qs["directory_structure"], dict)
+
+
+def test_quickstart_build_references_docker_image():
+    """quickstart build command should reference the mitgcm docker image."""
+    qs = suggest_experiment_config("rotating_convection")["quickstart"]
+    assert "ghcr.io/willirath/mitgcm" in qs["build"]
+
+
+def test_quickstart_both_experiment_types():
+    """Both experiment types should have a quickstart key."""
+    for exp in ("rotating_convection", "baroclinic_instability"):
+        result = suggest_experiment_config(exp)
+        assert "quickstart" in result, f"{exp} missing quickstart"

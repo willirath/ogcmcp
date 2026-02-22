@@ -52,6 +52,48 @@ _CONFIGS: dict = {
             "Check Ek < 0.01 and aspect ratio > 0.1 via check_scales before running.",
             "Spin up to solid-body rotation before enabling heat flux.",
         ],
+        "quickstart": {
+            "directory_structure": {
+                "code/CPP_OPTIONS.h": "#define each flag from cpp_options in this response",
+                "code/SIZE.h": (
+                    "Set sNx, sNy, Nr, nPx=1, nPy=1, nSx=1, nSy=1, OLx=2, OLy=2. "
+                    "Constraint: sNx*nSx*nPx == Nx, sNy*nSy*nPy == Ny. "
+                    "Use search_docs_tool('SIZE.h') to find a working example."
+                ),
+                "code/packages.conf": "One package name per line (e.g. diagnostics, rbcs)",
+                "code/DIAGNOSTICS_SIZE.h": (
+                    "Required when ALLOW_DIAGNOSTICS is defined. "
+                    "Use search_docs_tool('DIAGNOSTICS_SIZE.h') for an example."
+                ),
+                "input/data": "PARM01, PARM03, PARM04 from translate_lab_params_tool",
+                "input/data.eos": "EOS_PARM01 from namelists['data.eos'] in this response",
+                "input/data.pkg": "useXXX=.TRUE. for each active package",
+                "input/<fields>.bin": (
+                    "Binary input files — write a Python/numpy script to generate "
+                    "from your physical parameters."
+                ),
+            },
+            "build": (
+                "docker run --rm \\\n"
+                "  -v $(pwd)/my_experiment:/exp \\\n"
+                "  ghcr.io/willirath/mitgcm:latest \\\n"
+                "  bash -c \"mkdir -p /exp/build && cd /exp/build && \\\n"
+                "           /MITgcm/tools/genmake2 -mods ../code -mpi && \\\n"
+                "           make depend && make -j4\""
+            ),
+            "run": (
+                "docker run --rm \\\n"
+                "  -v $(pwd)/my_experiment:/exp \\\n"
+                "  ghcr.io/willirath/mitgcm:latest \\\n"
+                "  bash -c \"cd /exp/input && ln -sf /exp/build/mitgcmuv . && \\\n"
+                "           mpirun -np N ./mitgcmuv\""
+            ),
+            "notes": [
+                "Replace N in mpirun with nPx*nPy from SIZE.h.",
+                "The ghcr.io/willirath/mitgcm image includes MITgcm source — no git clone needed.",
+                "Binary .bin fields must be generated separately (numpy script); these tools do not produce them.",
+            ],
+        },
     },
     "baroclinic_instability": {
         "experiment_type": "baroclinic_instability",
@@ -95,6 +137,48 @@ _CONFIGS: dict = {
             "Free-slip sides (no_slip_sides=.FALSE.) often used in Eady models; adjust to match experiment.",
             "Hydrostatic approximation typically valid for Eady setups (aspect ratio < 0.1); confirm with check_scales.",
         ],
+        "quickstart": {
+            "directory_structure": {
+                "code/CPP_OPTIONS.h": "#define each flag from cpp_options in this response",
+                "code/SIZE.h": (
+                    "Set sNx, sNy, Nr, nPx=1, nPy=1, nSx=1, nSy=1, OLx=2, OLy=2. "
+                    "Constraint: sNx*nSx*nPx == Nx, sNy*nSy*nPy == Ny. "
+                    "Use search_docs_tool('SIZE.h') to find a working example."
+                ),
+                "code/packages.conf": "One package name per line (e.g. diagnostics)",
+                "code/DIAGNOSTICS_SIZE.h": (
+                    "Required when ALLOW_DIAGNOSTICS is defined. "
+                    "Use search_docs_tool('DIAGNOSTICS_SIZE.h') for an example."
+                ),
+                "input/data": "PARM01, PARM03, PARM04 from translate_lab_params_tool",
+                "input/data.eos": "EOS_PARM01 from namelists['data.eos'] in this response",
+                "input/data.pkg": "useXXX=.TRUE. for each active package",
+                "input/<fields>.bin": (
+                    "Binary input files — write a Python/numpy script to generate "
+                    "from your physical parameters."
+                ),
+            },
+            "build": (
+                "docker run --rm \\\n"
+                "  -v $(pwd)/my_experiment:/exp \\\n"
+                "  ghcr.io/willirath/mitgcm:latest \\\n"
+                "  bash -c \"mkdir -p /exp/build && cd /exp/build && \\\n"
+                "           /MITgcm/tools/genmake2 -mods ../code -mpi && \\\n"
+                "           make depend && make -j4\""
+            ),
+            "run": (
+                "docker run --rm \\\n"
+                "  -v $(pwd)/my_experiment:/exp \\\n"
+                "  ghcr.io/willirath/mitgcm:latest \\\n"
+                "  bash -c \"cd /exp/input && ln -sf /exp/build/mitgcmuv . && \\\n"
+                "           mpirun -np N ./mitgcmuv\""
+            ),
+            "notes": [
+                "Replace N in mpirun with nPx*nPy from SIZE.h.",
+                "The ghcr.io/willirath/mitgcm image includes MITgcm source — no git clone needed.",
+                "Binary .bin fields must be generated separately (numpy script); these tools do not produce them.",
+            ],
+        },
     },
 }
 

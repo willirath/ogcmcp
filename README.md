@@ -19,19 +19,44 @@ model, and pre-built indices).
 
 ## What it does
 
-Fifteen tools across three layers:
+Sixteen tools across four layers. Call `get_workflow_tool` at the start of a
+session to get a recommended tool sequence for your task.
 
-**Code navigation** — search subroutines semantically, read source with
-pagination, walk caller/callee graphs, trace namelist parameters and
-diagnostics fields to their source, query CPP flags.
+**Code navigation**
 
-**Documentation search** — semantic search over the MITgcm RST documentation
-(parameter descriptions, package tutorials, algorithm explanations).
+| Tool | What it does |
+|---|---|
+| `search_code_tool` | Semantic search over subroutine source |
+| `find_subroutines_tool` | Look up subroutines by name (all packages) |
+| `get_subroutine_tool` | Metadata for a subroutine (no source) |
+| `get_source_tool` | Paginated source lines for a subroutine |
+| `get_callers_tool` | What calls this subroutine |
+| `get_callees_tool` | What this subroutine calls |
+| `namelist_to_code_tool` | Which subroutine reads a namelist parameter |
+| `diagnostics_fill_to_source_tool` | Which subroutine fills a diagnostics field |
+| `get_cpp_requirements_tool` | CPP flags that guard a subroutine |
+| `get_package_flags_tool` | CPP flags defined by a package |
 
-**Domain knowledge** — translate physical lab parameters to namelist values,
-compute dimensionless numbers and flag CFL/Ekman issues, look up known
-configuration gotchas, get skeleton configs for rotating-convection and
-baroclinic-instability experiments.
+**Documentation search**
+
+| Tool | What it does |
+|---|---|
+| `search_docs_tool` | Semantic search over MITgcm RST documentation |
+
+**Domain knowledge**
+
+| Tool | What it does |
+|---|---|
+| `translate_lab_params_tool` | Physical lab parameters → namelist values |
+| `check_scales_tool` | Dimensionless numbers, CFL/Ekman flags |
+| `lookup_gotcha_tool` | Known configuration traps by keyword |
+| `suggest_experiment_config_tool` | Skeleton config + quickstart recipe for an experiment type |
+
+**Workflow guidance**
+
+| Tool | What it does |
+|---|---|
+| `get_workflow_tool` | Recommended tool sequence for a task (`design_experiment`, `debug_configuration`, `understand_package`, `explore_code`) |
 
 ## Example
 

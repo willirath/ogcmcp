@@ -19,6 +19,7 @@ from src.domain import (
     check_scales,
     lookup_gotcha,
     suggest_experiment_config,
+    get_workflow,
 )
 
 mcp = FastMCP("mitgcm")
@@ -315,6 +316,35 @@ def suggest_experiment_config_tool(experiment_type: str) -> dict | None:
         Returns None if the experiment type is not recognised.
     """
     return suggest_experiment_config(experiment_type)
+
+
+@mcp.tool()
+def get_workflow_tool(task: str | None = None) -> dict:
+    """Return recommended tool workflows for common tasks.
+
+    Call this at the start of a session to get oriented, or with a specific
+    task to get a step-by-step tool sequence.
+
+    This server indexes MITgcm source code and documentation, and provides
+    domain knowledge for rotating-tank experiments. The tools help agents
+    explore MITgcm resources accurately — they surface real source, real
+    namelist values, and known configuration traps rather than generating
+    answers from training data.
+
+    Parameters
+    ----------
+    task : str or None
+        One of "design_experiment", "debug_configuration",
+        "understand_package", "explore_code".
+        Omit (or pass None) to return all workflows.
+
+    Returns
+    -------
+    dict
+        Mapping of task name to {description, steps, notes}.
+        Each step has {tool, purpose}. Empty dict if task not recognised.
+    """
+    return get_workflow(task)
 
 
 @mcp.tool()

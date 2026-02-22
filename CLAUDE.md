@@ -50,20 +50,22 @@ data/                generated artifacts (gitignored)
 
 ## MITgcm source lookups
 
-When investigating MITgcm package behaviour, always use the MCP tools before
-reaching for Bash grep/sed on MITgcm source files:
+When investigating MITgcm package behaviour, **always use the MCP tools**.
+Never read MITgcm source directly via Bash when a tool exists for the purpose.
 
-| Question | Use this tool first |
+| Question | Tool |
 |---|---|
 | What does subroutine X do / what is its source? | `get_source_tool("X")` |
-| What namelist parameters does subroutine X read? | `namelist_to_code("param")` |
+| Which subroutines read namelist parameter P? | `namelist_to_code_tool("P")` |
 | What CPP flags guard subroutine X? | `get_cpp_requirements_tool("X")` |
 | What compile-time flags does package P expose? | `get_package_flags_tool("P")` |
 | General question about a package or behaviour | `search_code_tool("...")` |
+| Question about configuration, algorithms, or parameters | `search_docs_tool("...")` |
+| What calls / is called by subroutine X? | `get_callers_tool` / `get_callees_tool` |
 
-Direct reads of `MITgcm/pkg/` via Bash (`grep`, `sed`, `cat`) are a last
-resort — for things not in the index (e.g. header-only `.h` files with no
-subroutine, error message strings).
+Direct reads of `MITgcm/` via Bash (`grep`, `sed`, `cat`) are permitted only
+for content not in the index: header-only `.h` files that define no subroutine,
+raw error message strings, or build-system files.
 
 ## Docker
 
