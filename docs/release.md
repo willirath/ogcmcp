@@ -26,7 +26,7 @@ Build for both `linux/amd64` and `linux/arm64` and push directly to GHCR
 in one step (multi-arch manifests cannot be loaded into the local daemon):
 
 ```bash
-VERSION=v2026.02.1
+VERSION=v2026.02.2
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   -t ghcr.io/willirath/mitgcm-mcp:${VERSION} \
@@ -78,7 +78,7 @@ rotating_convection/
 ```
 
 The archive does not include `build/` or `run/` (gitignored). Users
-unpack it, run `gen.py` if they want to regenerate the binary inputs,
+unpack it, run `gen.py` if they want to regenerate the input files,
 then use `pixi run build-rotating-convection` /
 `pixi run run-rotating-convection` against the `mitgcm:latest` image.
 
@@ -97,7 +97,7 @@ tar -czf rotating_convection.tar.gz \
 ## 3. Create the GitHub release
 
 ```bash
-VERSION=v2026.02.1
+VERSION=v2026.02.2
 gh release create ${VERSION} \
   --title "MITgcm MCP ${VERSION}" \
   --notes "MCP image: \`ghcr.io/willirath/mitgcm-mcp:${VERSION}\`
@@ -119,10 +119,10 @@ MITgcm source: submodule pinned at \`decd05a\` (checkpoint69k)." \
 On a clean machine (or after removing the local image):
 
 ```bash
-docker rmi ghcr.io/willirath/mitgcm-mcp:v2026.02.1 2>/dev/null || true
+docker rmi ghcr.io/willirath/mitgcm-mcp:v2026.02.2 2>/dev/null || true
 
 claude mcp add --transport stdio --scope user mitgcm -- \
-  docker run --rm -i ghcr.io/willirath/mitgcm-mcp:v2026.02.1
+  docker run --rm -i ghcr.io/willirath/mitgcm-mcp:v2026.02.2
 ```
 
 Then in a Claude Code session:
@@ -138,7 +138,7 @@ Expected: `namelist_to_code_tool` returns a result referencing `cg3dMaxIters`.
 ## 5. Git tag
 
 ```bash
-VERSION=v2026.02.1
+VERSION=v2026.02.2
 git tag -a ${VERSION} -m "Release ${VERSION}"
 git push origin ${VERSION}
 ```

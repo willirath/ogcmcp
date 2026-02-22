@@ -1,15 +1,14 @@
 # Tools
 
-`src/tools.py` exposes eight plain Python callables over the DuckDB code graph
-and ChromaDB semantic index built in M1–M2. No server or framework is involved;
-functions return plain dicts and lists so they can be easily serialised for the
-M4 MCP layer.
+`src/tools.py` exposes eleven plain Python callables over the DuckDB code graph
+and ChromaDB semantic index. No server or framework is involved; functions
+return plain dicts and lists so they can be easily serialised for the MCP layer.
 
 ## Module layout
 
 ```
 src/
-└── tools.py        eight public functions
+└── tools.py        eleven public functions
 ```
 
 ## Functions
@@ -145,6 +144,28 @@ found.
 ```python
 [{"cpp_flag": "ALLOW_NONHYDROST", "description": "Enable non-hydrostatic solver"}]
 ```
+
+### `get_doc_source(file, section, offset=0, limit=200, _chroma_path=...)`
+
+Retrieve and reassemble the full text of a documentation section or `.h`
+header file. Fetches all stored chunks for `(file, section)` from ChromaDB,
+sorts by `chunk_index`, strips the prepended `[file] section\n` header from
+each chunk, removes overlap between adjacent chunks, then returns paginated
+lines. Does not call Ollama.
+
+Return shape:
+
+```python
+{
+    "file": "phys_pkgs/rbcs.rst",
+    "section": "RBCS — Relaxation Boundary Conditions for T and S",
+    "total_lines": 120,
+    "offset": 0,
+    "lines": ["Line one.", "Line two.", ...],
+}
+```
+
+Returns `None` if no chunks match `(file, section)`.
 
 ### `search_docs(query, top_k=5, _chroma_path=...)`
 

@@ -8,7 +8,7 @@ up with zero network configuration.
 
 ```bash
 claude mcp add --transport stdio --scope user mitgcm -- \
-  docker run --rm -i ghcr.io/willirath/mitgcm-mcp:v2026.02.1
+  docker run --rm -i ghcr.io/willirath/mitgcm-mcp:v2026.02.2
 ```
 
 ## Development use
@@ -102,8 +102,19 @@ CPP flags defined by a package, with descriptions.
 search_docs_tool(query: str, top_k: int = 5) -> list[dict]
 ```
 Semantic search over MITgcm RST documentation sections (parameter
-descriptions, package tutorials, algorithm explanations). Each result has
-`file`, `section`, and `snippet` (first 400 chars of the matched section).
+descriptions, package tutorials, algorithm explanations) and verification
+experiment `.h` header files. Each result has `file`, `section`, and
+`snippet` (first 400 chars of the matched section).
+
+#### `get_doc_source_tool`
+```
+get_doc_source_tool(file: str, section: str,
+                    offset: int = 0, limit: int = 200) -> dict | None
+```
+Full paginated text of a documentation section or header file. Use
+`search_docs_tool` first to discover `file` and `section` values, then call
+this to read the complete content. Mirrors `get_source_tool` for subroutines.
+Returns `{file, section, total_lines, offset, lines}` or `None` if not found.
 
 ### Domain knowledge
 
@@ -138,6 +149,18 @@ suggest_experiment_config_tool(experiment_type: str) -> dict | None
 ```
 Skeleton MITgcm configuration for `rotating_convection` or
 `baroclinic_instability`. Returns CPP flags, namelist stanzas, and notes.
+
+### Workflow guidance
+
+#### `get_workflow_tool`
+```
+get_workflow_tool(task: str | None = None) -> dict
+```
+Recommended tool sequence for a named task. Call this at the start of a
+session to orient the agent. `task` is one of `design_experiment`,
+`debug_configuration`, `understand_package`, `explore_code`. Pass `None` (or
+omit) to get all workflows. Each workflow has `description`, `steps` (ordered
+list of `{tool, purpose}`), and `notes`.
 
 ## Example session
 

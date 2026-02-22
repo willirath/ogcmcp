@@ -2,7 +2,7 @@
   "mcpServers": {
     "mitgcm": {
       "command": "docker",
-      "args": ["run", "--rm", "-i", "ghcr.io/willirath/mitgcm-mcp:v2026.02.1"]
+      "args": ["run", "--rm", "-i", "ghcr.io/willirath/mitgcm-mcp:v2026.02.2"]
     }
   }
 }
