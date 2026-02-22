@@ -1,7 +1,7 @@
 # MITgcm MCP
 
 An MCP server that gives Claude Code live access to the MITgcm source code
-graph, documentation, and a domain knowledge layer for rotating experiments.
+graph, documentation, and a domain knowledge layer for experiment design.
 Ask questions in natural language; the tools retrieve answers directly from
 the indexed source and docs.
 

@@ -226,7 +226,7 @@ def check_scales_tool(
     nu: float = 1e-6,
     alpha: float = 2e-4,
 ) -> dict:
-    """Compute dimensionless numbers and flag issues for a rotating MITgcm configuration.
+    """Compute dimensionless numbers and flag issues for a MITgcm configuration.
 
     All length parameters are in metres; Omega in rad/s; dt in seconds;
     U in m/s; nu in m^2/s; alpha in K^-1; delta_T in Kelvin.
@@ -327,7 +327,7 @@ def get_workflow_tool(task: str | None = None) -> dict:
     task to get a step-by-step tool sequence.
 
     This server indexes MITgcm source code and documentation, and provides
-    domain knowledge for rotating MITgcm experiments. The tools help agents
+    domain knowledge for MITgcm experiments. The tools help agents
     explore MITgcm resources accurately — they surface real source, real
     namelist values, and known configuration traps rather than generating
     answers from training data.

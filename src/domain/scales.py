@@ -1,4 +1,4 @@
-"""Compute dimensionless numbers and flag issues for rotating MITgcm configurations.
+"""Compute dimensionless numbers and flag issues for MITgcm configurations.
 
 pint is used internally for all physics calculations; units are stripped
 before populating the returned dict (MCP/JSON boundary accepts plain floats only).
@@ -39,7 +39,7 @@ def check_scales(
     nu: float = 1e-6,
     alpha: float = 2e-4,
 ) -> dict:
-    """Compute dimensionless numbers and flag issues for a rotating MITgcm configuration.
+    """Compute dimensionless numbers and flag issues for a MITgcm configuration.
 
     Parameters
     ----------
