@@ -1,4 +1,4 @@
-"""Compute dimensionless numbers and flag issues for rotating-tank configurations.
+"""Compute dimensionless numbers and flag issues for MITgcm configurations.
 
 pint is used internally for all physics calculations; units are stripped
 before populating the returned dict (MCP/JSON boundary accepts plain floats only).
@@ -39,14 +39,14 @@ def check_scales(
     nu: float = 1e-6,
     alpha: float = 2e-4,
 ) -> dict:
-    """Compute dimensionless numbers and flag issues for a rotating-tank configuration.
+    """Compute dimensionless numbers and flag issues for a MITgcm configuration.
 
     Parameters
     ----------
     Lx : float
-        Tank length in x in metres.
+        Domain length in x in metres.
     Ly : float
-        Tank length in y in metres.
+        Domain length in y in metres.
     depth : float
         Water depth in metres.
     Omega : float

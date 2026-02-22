@@ -1,9 +1,9 @@
 # Domain Knowledge Layer
 
-The domain knowledge layer (`src/domain/`) provides tank-experiment-specific
+The domain knowledge layer (`src/domain/`) provides experiment-design
 reasoning on top of the MITgcm code graph and semantic index.  Where the
 code-graph tools answer *how MITgcm works*, the domain knowledge tools
-answer *how to configure it for a rotating-tank experiment*.
+answer *how to configure it for a given experiment*.
 
 ---
 
@@ -30,8 +30,8 @@ Translates physical lab quantities to MITgcm namelist parameters.
 from src.domain import translate_lab_params
 
 result = translate_lab_params(
-    Lx: float,          # m  — tank length in x (diameter for cylindrical)
-    Ly: float,          # m  — tank length in y (diameter for cylindrical)
+    Lx: float,          # m  — tank length in x (use diameter for cylindrical)
+    Ly: float,          # m  — tank length in y (use diameter for cylindrical)
     depth: float,       # m  — water depth
     Omega: float,       # rad/s — rotation rate (0 for non-rotating)
     delta_T: float | None = None,  # K — temperature contrast (optional)
@@ -98,8 +98,8 @@ Computes dimensionless numbers and raises flags for a proposed configuration.
 from src.domain import check_scales
 
 result = check_scales(
-    Lx: float,          # m  — tank length in x
-    Ly: float,          # m  — tank length in y
+    Lx: float,          # m  — domain length in x
+    Ly: float,          # m  — domain length in y
     depth: float,       # m  — water depth
     Omega: float,       # rad/s — rotation rate
     delta_T: float | None = None,  # K — temperature contrast (for N, Bu)
@@ -151,7 +151,7 @@ Flags are raised when:
 ### `lookup_gotcha`
 
 Case-insensitive keyword search over a static catalogue of known
-configuration traps for rotating-tank MITgcm experiments.
+MITgcm configuration traps.
 
 ```python
 from src.domain import lookup_gotcha

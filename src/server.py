@@ -19,6 +19,7 @@ from src.domain import (
     check_scales,
     lookup_gotcha,
     suggest_experiment_config,
+    get_workflow,
 )
 
 mcp = FastMCP("mitgcm")
@@ -225,7 +226,7 @@ def check_scales_tool(
     nu: float = 1e-6,
     alpha: float = 2e-4,
 ) -> dict:
-    """Compute dimensionless numbers and flag issues for a rotating-tank configuration.
+    """Compute dimensionless numbers and flag issues for a MITgcm configuration.
 
     All length parameters are in metres; Omega in rad/s; dt in seconds;
     U in m/s; nu in m^2/s; alpha in K^-1; delta_T in Kelvin.
@@ -233,9 +234,9 @@ def check_scales_tool(
     Parameters
     ----------
     Lx : float
-        Tank length in x in metres.
+        Domain length in x in metres.
     Ly : float
-        Tank length in y in metres.
+        Domain length in y in metres.
     depth : float
         Water depth in metres.
     Omega : float
@@ -272,11 +273,11 @@ def check_scales_tool(
 
 @mcp.tool()
 def lookup_gotcha_tool(topic: str) -> list[dict]:
-    """Search the rotating-tank MITgcm gotcha catalogue by keyword.
+    """Search the MITgcm gotcha catalogue by keyword.
 
     Case-insensitive keyword search over a curated catalogue of known
-    configuration traps for rotating-tank MITgcm experiments.  Returns
-    all entries whose keyword list matches any phrase in the topic string.
+    MITgcm configuration traps.  Returns all entries whose keyword list
+    matches any phrase in the topic string.
 
     Parameters
     ----------
@@ -295,7 +296,7 @@ def lookup_gotcha_tool(topic: str) -> list[dict]:
 
 @mcp.tool()
 def suggest_experiment_config_tool(experiment_type: str) -> dict | None:
-    """Return a skeleton MITgcm configuration for a known rotating-tank experiment type.
+    """Return a skeleton MITgcm configuration for a known experiment type.
 
     Returns a structured dict with CPP flags, namelist stanzas, and setup notes.
     Recognised types: "rotating_convection", "baroclinic_instability".
@@ -311,10 +312,40 @@ def suggest_experiment_config_tool(experiment_type: str) -> dict | None:
     -------
     dict or None
         Keys: "experiment_type", "description", "cpp_options" (list of str),
-        "namelists" (dict of file -> group -> param -> value), "notes" (list of str).
+        "namelists" (dict of file -> group -> param -> value), "notes" (list of str),
+        "quickstart" (dict with "directory_structure", "build", "run", "notes").
         Returns None if the experiment type is not recognised.
     """
     return suggest_experiment_config(experiment_type)
+
+
+@mcp.tool()
+def get_workflow_tool(task: str | None = None) -> dict:
+    """Return recommended tool workflows for common tasks.
+
+    Call this at the start of a session to get oriented, or with a specific
+    task to get a step-by-step tool sequence.
+
+    This server indexes MITgcm source code and documentation, and provides
+    domain knowledge for MITgcm experiments. The tools help agents
+    explore MITgcm resources accurately — they surface real source, real
+    namelist values, and known configuration traps rather than generating
+    answers from training data.
+
+    Parameters
+    ----------
+    task : str or None
+        One of "design_experiment", "debug_configuration",
+        "understand_package", "explore_code".
+        Omit (or pass None) to return all workflows.
+
+    Returns
+    -------
+    dict
+        Mapping of task name to {description, steps, notes}.
+        Each step has {tool, purpose}. Empty dict if task not recognised.
+    """
+    return get_workflow(task)
 
 
 @mcp.tool()

@@ -1,7 +1,7 @@
-"""Rotating-tank MITgcm gotcha catalogue and keyword search.
+"""MITgcm configuration gotcha catalogue and keyword search.
 
-The catalogue is a static list of known configuration traps for rotating-tank
-MITgcm experiments. Each entry has:
+The catalogue is a static list of known MITgcm configuration traps.
+Each entry has:
 - title    : short identifying name
 - keywords : list of lowercase search terms
 - summary  : one-sentence description
@@ -180,7 +180,7 @@ CATALOGUE: list[dict] = [
 
 
 def lookup_gotcha(topic: str) -> list[dict]:
-    """Search the rotating-tank gotcha catalogue by keyword.
+    """Search the MITgcm gotcha catalogue by keyword.
 
     The search is case-insensitive. Any keyword phrase from the catalogue that
     appears in the topic string triggers a match.

@@ -1,9 +1,9 @@
 # MITgcm MCP
 
 An MCP server that gives Claude Code live access to the MITgcm source code
-graph, documentation, and a domain knowledge layer for rotating-tank
-experiments. Ask questions in natural language; the tools retrieve answers
-directly from the indexed source and docs.
+graph, documentation, and a domain knowledge layer for experiment design.
+Ask questions in natural language; the tools retrieve answers directly from
+the indexed source and docs.
 
 ## Install
 
@@ -16,22 +16,6 @@ claude mcp add --transport stdio --scope user mitgcm -- \
 
 Docker pulls the image on first use (~600 MB — includes Ollama, the embedding
 model, and pre-built indices).
-
-## What it does
-
-Fifteen tools across three layers:
-
-**Code navigation** — search subroutines semantically, read source with
-pagination, walk caller/callee graphs, trace namelist parameters and
-diagnostics fields to their source, query CPP flags.
-
-**Documentation search** — semantic search over the MITgcm RST documentation
-(parameter descriptions, package tutorials, algorithm explanations).
-
-**Domain knowledge** — translate physical lab parameters to namelist values,
-compute dimensionless numbers and flag CFL/Ekman issues, look up known
-configuration gotchas, get skeleton configs for rotating-convection and
-baroclinic-instability experiments.
 
 ## Example
 
@@ -58,6 +42,47 @@ Claude: The decomposition is entirely compile-time: SIZE.h sets nPx,
         nPy, nSx, nSy. The number of MPI ranks launched must equal
         nPx × nPy — there is no runtime check until the model aborts.
 ```
+
+## What it does
+
+Sixteen tools across four layers. Call `get_workflow_tool` at the start of a
+session to get a recommended tool sequence for your task.
+
+### Code navigation
+
+| Tool | What it does |
+|---|---|
+| `search_code_tool` | Semantic search over subroutine source |
+| `find_subroutines_tool` | Look up subroutines by name (all packages) |
+| `get_subroutine_tool` | Metadata for a subroutine (no source) |
+| `get_source_tool` | Paginated source lines for a subroutine |
+| `get_callers_tool` | What calls this subroutine |
+| `get_callees_tool` | What this subroutine calls |
+| `namelist_to_code_tool` | Which subroutine reads a namelist parameter |
+| `diagnostics_fill_to_source_tool` | Which subroutine fills a diagnostics field |
+| `get_cpp_requirements_tool` | CPP flags that guard a subroutine |
+| `get_package_flags_tool` | CPP flags defined by a package |
+
+### Documentation search
+
+| Tool | What it does |
+|---|---|
+| `search_docs_tool` | Semantic search over MITgcm RST documentation |
+
+### Domain knowledge
+
+| Tool | What it does |
+|---|---|
+| `translate_lab_params_tool` | Physical lab parameters → namelist values |
+| `check_scales_tool` | Dimensionless numbers, CFL/Ekman flags |
+| `lookup_gotcha_tool` | Known configuration traps by keyword |
+| `suggest_experiment_config_tool` | Skeleton config + quickstart recipe for an experiment type |
+
+### Workflow guidance
+
+| Tool | What it does |
+|---|---|
+| `get_workflow_tool` | Recommended tool sequence for a task (`design_experiment`, `debug_configuration`, `understand_package`, `explore_code`) |
 
 ## Architecture
 
@@ -90,20 +115,6 @@ flowchart TB
 | [`docs/docs-index.md`](docs/docs-index.md) | RST documentation index |
 | [`docs/parsing.md`](docs/parsing.md) | Fortran extraction approach |
 | [`docs/diagrams.md`](docs/diagrams.md) | Pipeline and query-time flow diagrams |
-
-## Milestones
-
-| Milestone | What | Status |
-|---|---|---|
-| M0 | Environment, MITgcm submodule, embeddings server | ✓ |
-| M1 | DuckDB code graph (2433 subroutines indexed) | ✓ |
-| M2 | ChromaDB subroutine index | ✓ |
-| M3 | Core query tools | ✓ |
-| M4 | MCP server | ✓ |
-| M5 | Domain knowledge layer | ✓ |
-| M6 | MITgcm runtime environment (Docker) | ✓ |
-| M7 | First real experiment (rotating convection) | ✓ |
-| M8 | MITgcm documentation index | ✓ |
 
 ## For developers
 

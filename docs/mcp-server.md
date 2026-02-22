@@ -130,8 +130,7 @@ resolution, and aspect-ratio issues.
 ```
 lookup_gotcha_tool(topic: str) -> list[dict]
 ```
-Keyword search over a curated catalogue of MITgcm rotating-tank configuration
-traps. Returns matching entries with `title`, `keywords`, `summary`, `detail`.
+Keyword search over a curated catalogue of MITgcm configuration traps. Returns matching entries with `title`, `keywords`, `summary`, `detail`.
 
 #### `suggest_experiment_config_tool`
 ```

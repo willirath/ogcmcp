@@ -1,5 +1,36 @@
 # Backlog
 
+Known limitations and deferred improvements, in no particular priority order.
+
+---
+
+## Index verification `.h` files for tool-driven discovery
+
+**Where**: `src/docs_indexer/pipeline.py`, `src/docs_indexer/parse.py`
+
+**Problem**: `SIZE.h`, `DIAGNOSTICS_SIZE.h`, `CPP_OPTIONS.h`, and other
+headers from `MITgcm/verification/*/code/` are not indexed anywhere. The
+subroutine index only covers `.F`/`.F90`; the docs index only covers `.rst`.
+An agent asked to write a `SIZE.h` must rely on memory, which is the most
+common source of decomposition errors (wrong `OLx`, confused `nSx` vs `nPx`,
+etc.).
+
+The docs index already surfaces SIZE.h *prose* from tutorial RSTs, but only
+the customised lines, not complete files.
+
+**Fix**: In `docs_indexer/pipeline.py`, add a second walk over
+`MITgcm/verification/*/code/*.h`. Treat each file as a document with metadata
+`{file, experiment, section=filename}` and feed it through the same
+`_doc_chunks` → `collection.upsert` path already used for RST sections. No
+new collection, no new tool, no schema changes. After reindexing,
+`search_docs_tool("SIZE.h rotating tank")` returns the actual compilable
+header from a known-working experiment rather than prose describing it.
+
+This is the right pattern for the project's scope: the tools help agents
+*explore MITgcm resources*, and verification headers are a primary resource.
+Generating `SIZE.h` from a tool would narrow creative space; surfacing real
+examples lets the agent adapt them.
+
 ---
 
 ## Codex CLI support
@@ -15,8 +46,6 @@ how Codex CLI handles stdio subprocess lifecycle or connection timeouts.
 issue is in Codex's MCP client, the entrypoint, or an incompatibility in the
 fastmcp stdio transport. Once fixed, add `codex mcp add` install instructions
 back to README and release docs.
-
-Known limitations and deferred improvements, in no particular priority order.
 
 ---
 
@@ -77,27 +106,6 @@ diagnostic plot for a completed experiment.
 **Fix**: A `plot_experiment.py` script (or pixi task) that reads MNC output
 and produces a standard set of plots: surface map, radius–depth cross-section,
 time series of domain-mean temperature. Output goes to `experiments/<name>/fig/`.
-
----
-
-## Tool use vs. direct file reads
-
-**Where**: System prompt / CLAUDE.md
-
-**Problem**: Claude sometimes reads MITgcm source directly via Bash (`sed`,
-`cat`) rather than through the MCP tools (`get_source_tool`,
-`get_subroutine_tool`). The MCP tools provide structured context and respect
-the indexed representation; direct reads bypass them and can silently mislead.
-
-**Example**:
-```
-Bash(sed -n '80,130p' MITgcm/pkg/rbcs/rbcs_add_tendency.F)
-```
-should be replaced by `get_source_tool("rbcs_add_tendency")`.
-
-**Fix**: Strengthen CLAUDE.md instructions to prohibit direct MITgcm source
-reads when an MCP tool exists for the same purpose. Could also add a hook that
-warns when `MITgcm/` appears in a Bash command.
 
 ---
 
