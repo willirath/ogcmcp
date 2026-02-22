@@ -1,5 +1,124 @@
 # Backlog
 
+Known limitations and deferred improvements, in no particular priority order.
+
+---
+
+---
+
+## Tool listing in README
+
+**Where**: `README.md`
+
+**Problem**: The README installs the server but gives little signal about what
+it actually does before the reader commits to the install. A user skimming
+GitHub has no fast way to judge whether the tools match their workflow.
+
+**Fix**: Add a concise table of all MCP tools (name, one-line description,
+example query) to the README, placed before the install section. Keep it in
+sync with docstrings in `src/tools.py` — could be auto-generated at release
+time from the tool registry to avoid drift.
+
+---
+
+## README as entry point for a new user
+
+**Where**: `README.md`
+
+**Problem**: The README is written for someone who has already decided to
+install. It does not answer the prior question: "what kind of problems does
+this help with, and would it help *me*?" A domain scientist unfamiliar with
+MCP or LLM tooling may not recognise the value proposition from the current
+text.
+
+**Fix**: Open with a concrete before/after: what question did an agent fail to
+answer without the tools, and what did it produce with them? One worked example
+of a full agent session (lab parameters → namelist → scale check → gotcha
+warning) makes the value tangible. The example already exists in the README;
+it may just need to be surfaced earlier and framed around the user's problem
+rather than the tool's features.
+
+---
+
+## Agent entry point: tool discoverability and suggested workflow
+
+**Where**: `src/server.py`, tool docstrings
+
+**Problem**: When an agent first sees the tool list, it gets names and
+docstrings but no suggested workflow or ordering. An agent asked to design a
+rotating-tank experiment may reach for `search_code_tool` (wrong first step)
+rather than `translate_lab_params_tool` → `check_scales_tool` →
+`suggest_experiment_config_tool`. The tools are individually documented but the
+*workflow* is implicit.
+
+**Fix**: Two options, not mutually exclusive:
+- Add a `get_workflow` tool (or `describe_capabilities`) that returns a
+  short natural-language description of the intended usage flow for common
+  tasks ("designing a new experiment", "debugging a configuration", "understanding
+  a package"). Zero implementation cost; high value for cold-start sessions.
+- Strengthen individual docstrings with "call this after X" / "combine with Y"
+  cross-references so the workflow emerges from the tool descriptions alone.
+
+---
+
+## Index verification `.h` files for tool-driven discovery
+
+**Where**: `src/docs_indexer/pipeline.py`, `src/docs_indexer/parse.py`
+
+**Problem**: `SIZE.h`, `DIAGNOSTICS_SIZE.h`, `CPP_OPTIONS.h`, and other
+headers from `MITgcm/verification/*/code/` are not indexed anywhere. The
+subroutine index only covers `.F`/`.F90`; the docs index only covers `.rst`.
+An agent asked to write a `SIZE.h` must rely on memory, which is the most
+common source of decomposition errors (wrong `OLx`, confused `nSx` vs `nPx`,
+etc.).
+
+The docs index already surfaces SIZE.h *prose* from tutorial RSTs, but only
+the customised lines, not complete files.
+
+**Fix**: In `docs_indexer/pipeline.py`, add a second walk over
+`MITgcm/verification/*/code/*.h`. Treat each file as a document with metadata
+`{file, experiment, section=filename}` and feed it through the same
+`_doc_chunks` → `collection.upsert` path already used for RST sections. No
+new collection, no new tool, no schema changes. After reindexing,
+`search_docs_tool("SIZE.h rotating tank")` returns the actual compilable
+header from a known-working experiment rather than prose describing it.
+
+This is the right pattern for the project's scope: the tools help agents
+*explore MITgcm resources*, and verification headers are a primary resource.
+Generating `SIZE.h` from a tool would narrow creative space; surfacing real
+examples lets the agent adapt them.
+
+---
+
+## Quickstart in suggest_experiment_config_tool: Docker recipe without a fixed template
+
+**Where**: `src/domain/suggest.py`, `docker/mitgcm/Dockerfile`
+
+**Problem**: Two related issues:
+
+1. The `suggest_experiment_config_tool` output currently has no "how to build
+   and run" section. An agent that produces correct namelists and CPP options
+   still cannot complete the task without knowing the build recipe.
+2. Any recipe that references `rotating_convection.tar.gz` or another
+   concrete template anchors the agent to that setup, narrowing creative space.
+
+**Fix — two parts**:
+
+*Part A (Dockerfile)*: Bake a pinned MITgcm source checkout into
+`docker/mitgcm/Dockerfile` (shallow clone + `rm -rf .git`). The image grows
+~300–400 MB but users no longer need `git clone MITgcm`. The pinned checkout
+also ensures reproducibility: the experiment was designed against the same
+source that will compile it.
+
+*Part B (tool output)*: Add a `quickstart` key to the dict returned by
+`suggest_experiment_config_tool`. Content should describe the *generic
+directory contract* — `code/` files come from the tool, `input/` files come
+from `translate_lab_params_tool`, binary fields come from agent-written Python
+— followed by the two Docker commands (build, run). No reference to any
+specific experiment or tarball. An agent reading this understands the
+file-layout contract and the exact Docker invocation without being steered
+toward any particular physical setup.
+
 ---
 
 ## Codex CLI support
@@ -15,8 +134,6 @@ how Codex CLI handles stdio subprocess lifecycle or connection timeouts.
 issue is in Codex's MCP client, the entrypoint, or an incompatibility in the
 fastmcp stdio transport. Once fixed, add `codex mcp add` install instructions
 back to README and release docs.
-
-Known limitations and deferred improvements, in no particular priority order.
 
 ---
 
