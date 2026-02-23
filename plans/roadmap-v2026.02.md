@@ -448,8 +448,8 @@ Container currently runs as root. Add a dedicated non-root user.
 - [x] `pixi run test` passes (355 tests)
 - [x] Tier 4 done (D5, EXACT_CONSERV, PHIHYD, Tier 5 HIGH items)
 - [x] Tiers 5–9 done
-- [ ] `pixi run embed-verification` run and data baked into image
-- [ ] Both images built and pushed (`mcp-v2026.02.5`, `runtime-v2026.02.5`)
+- [x] `pixi run embed-verification` run and data baked into image
+- [x] Both images built and pushed (`mcp-v2026.02.5`, `runtime-v2026.02.5`)
 - [ ] GitHub release created
 - [ ] Git tag pushed
 - [ ] `docs/release.md` VERSION updated
