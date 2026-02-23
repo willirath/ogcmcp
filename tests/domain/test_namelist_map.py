@@ -12,7 +12,7 @@ def test_returns_dict():
 def test_core_files_present():
     """Core namelist files must always be present (explicit entries)."""
     result = get_namelist_structure()
-    for file in ("data", "eedata", "data.pkg", "data.eos"):
+    for file in ("data", "eedata", "data.pkg", "data.eos", "data.diagnostics"):
         assert file in result, f"{file} missing from structure"
 
 
@@ -133,3 +133,27 @@ def test_exch2_explicit():
     result = get_namelist_structure()
     assert "data.exch2" in result
     assert "W2_EXCH2_PARM01" in result["data.exch2"]
+
+
+def test_diagnostics_explicit():
+    """data.diagnostics must have DIAGNOSTICS_LIST and DIAG_STATIS_PARMS."""
+    result = get_namelist_structure()
+    assert "data.diagnostics" in result
+    groups = result["data.diagnostics"]
+    assert "DIAGNOSTICS_LIST" in groups
+    assert "DIAG_STATIS_PARMS" in groups
+    assert "numDiags" in groups["DIAGNOSTICS_LIST"]
+
+
+def test_obcs_description_mentions_boundaries():
+    """OBCS_PARM01 description should mention open boundary conditions."""
+    result = get_namelist_structure()
+    desc = result["data.obcs"]["OBCS_PARM01"]
+    assert "boundary" in desc.lower() or "open" in desc.lower()
+
+
+def test_rbcs_description_mentions_taurelax():
+    """RBCS_PARM01 description should mention tauRelaxT."""
+    result = get_namelist_structure()
+    desc = result["data.rbcs"]["RBCS_PARM01"]
+    assert "tauRelax" in desc

@@ -27,7 +27,8 @@ RUN pip install --no-cache-dir \
     "ollama>=0.6.1,<0.7" \
     "mcp>=1.0,<2" \
     "pint>=0.24,<1" \
-    "fastapi>=0.129.0,<0.130"
+    "fastapi>=0.129.0,<0.130" \
+    "f90nml>=1.4,<2"
 
 WORKDIR /app
 

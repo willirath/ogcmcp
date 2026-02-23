@@ -474,6 +474,12 @@ def search_docs_tool(query: str, top_k: int = 5) -> list[dict]:
     'open boundary conditions'). For a specific namelist parameter name
     (e.g. 'zonalWindFile', 'tauRelaxT'), use namelist_to_code_tool instead
     — semantic search on exact camelCase identifiers gives poor results.
+
+    Results may include .h header files (e.g. model/inc/SIZE.h,
+    eesupp/inc/EXCH.h, verification/*/code/SIZE.h). For these, the snippet
+    often shows only the opening comment block — the actual declarations
+    (PARAMETER statements, COMMON blocks) start further in. Always follow
+    up with get_doc_source_tool(file, section) to read the full content.
     """
     return search_docs(query, top_k=top_k)
 

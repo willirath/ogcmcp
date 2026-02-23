@@ -185,6 +185,93 @@ _EXPLICIT: dict[str, dict[str, str]] = {
     "data.obsfit": {
         "obsfit_nml": "Observation-fit package: observation error covariance and fitting parameters.",
     },
+    "data.diagnostics": {
+        "DIAGNOSTICS_LIST": (
+            "Diagnostics output streams: one namelist per output file. "
+            "Each stream sets frequency (seconds), output fields "
+            "(fields(1:n,k)), file name (filename(k)), and time-averaging "
+            "options (timePhase, levels). "
+            "Requires numDiags in DIAGNOSTICS_SIZE.h ≥ n_fields × Nr; "
+            "the default numDiags = 1×Nr fits only one 3-D field."
+        ),
+        "DIAG_STATIS_PARMS": (
+            "Diagnostics statistical (domain-mean) output: output frequency "
+            "and file name for the statistics stream, separate from gridded output."
+        ),
+    },
+    "data.obcs": {
+        "OBCS_PARM01": (
+            "Open boundary conditions core: which boundaries are open "
+            "(OBCSnorthActive, OBCSsouthActive, OBCSeastActive, OBCSwestActive), "
+            "boundary relaxation time scale (OBCS_relaxTau*), and "
+            "boundary scheme (Stevens, Orlanski, or prescribed)."
+        ),
+        "OBCS_PARM02": (
+            "OBC sponge-layer relaxation: nudging thickness (sponge_*Width) "
+            "and time scales for tracer and velocity fields near open boundaries."
+        ),
+        "OBCS_PARM03": (
+            "OBC tidal forcing: tidal constituent amplitudes and phases "
+            "for barotropic tidal boundary conditions."
+        ),
+        "OBCS_PARM04": (
+            "OBC passive tracer boundary conditions: file names and "
+            "relaxation options for passive tracer open boundaries."
+        ),
+        "OBCS_PARM05": (
+            "OBC runoff forcing: river runoff flux file names and options."
+        ),
+    },
+    "data.kpp": {
+        "KPP_PARM01": (
+            "KPP (K-Profile Parameterisation) vertical mixing: "
+            "boundary layer depth scheme (KPPmixing, KPPbbl), "
+            "diffusivity minima and maxima, Langmuir turbulence, and "
+            "non-local counter-gradient flux options."
+        ),
+    },
+    "data.rbcs": {
+        "RBCS_PARM01": (
+            "RBCS restoring / sponge core: time scales (tauRelaxT, tauRelaxS), "
+            "forcing period and cycle (rbcsForcingPeriod, rbcsForcingCycle), "
+            "and mask / target-field file names (relaxMaskFile, relaxTFile, "
+            "relaxSFile). tauRelaxT must never be zero even when mask weights "
+            "control the restoring strength."
+        ),
+        "RBCS_PARM02": (
+            "RBCS velocity restoring: file names and time scales for "
+            "relaxation of U and V velocity fields."
+        ),
+    },
+    "data.seaice": {
+        "SEAICE_PARM01": (
+            "Sea-ice dynamics and thermodynamics core: rheology "
+            "(SEAICEuseDYNAMICS, SEAICE_strength), albedo parameters, "
+            "and ice–ocean heat exchange coefficients."
+        ),
+        "SEAICE_PARM02": (
+            "Sea-ice EVP/LSR solver: rheology solver parameters, "
+            "iteration counts, and convergence tolerances."
+        ),
+        "SEAICE_PARM03": (
+            "Sea-ice forcing files: ice concentration, thickness, and "
+            "velocity initial condition and forcing file names."
+        ),
+    },
+    "data.ptracers": {
+        "PTRACERS_PARM01": (
+            "Passive tracer package: number of tracers (PTRACERS_num), "
+            "initial condition files (PTRACERS_IC_file), advection scheme "
+            "flags per tracer, and tracer names."
+        ),
+    },
+    "data.shelfice": {
+        "SHELFICE_PARM01": (
+            "Ice-shelf sub-shelf melting: parameterisation scheme "
+            "(SHELFICEMassStepping, SHELFICEDensity), heat and freshwater "
+            "exchange coefficients, and ice-shelf geometry files."
+        ),
+    },
 }
 
 # Flat lookup: group -> file (for the derivation override path)
