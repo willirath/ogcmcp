@@ -168,12 +168,48 @@ Fortran namelist. Catches silent formatting errors.
 
 ---
 
+## Pre-release test fixes (from 2026-02-23 test session)
+
+Test session against local `mitgcm-mcp:latest` image. Full report in
+`plans/test-sessions/2026-02-23-v2026.02.5-pre-release-test-report.md`.
+
+### Done
+
+- [x] D1: `f90nml` missing from image — added to Dockerfile pip install
+- [x] D2: `data.diagnostics` absent from `get_namelist_structure_tool` — added
+  `DIAGNOSTICS_LIST` and `DIAG_STATIS_PARMS` to `_EXPLICIT` in `namelist_map.py`
+- [x] D3: Test plan expected only `ALLOW_NONHYDROSTATIC` for CG3D — corrected;
+  `TARGET_NEC_SX` and `NONLIN_FRSURF` are real guards in the full source
+- [x] D4: OBCS (and KPP, RBCS, SEAICE, PTRACERS, SHELFICE) had generic
+  descriptions — added explicit entries with informative descriptions
+- [x] D6: `search_docs_tool` description updated to warn that `.h` snippet
+  shows comment header only; agents should use `get_doc_source_tool` for
+  full content
+- [x] D7: Test plan corrected to check `quickstart.dockerfile_amd64` for
+  `-mpi`, not `quickstart.build`
+
+### Still needed before tag
+
+- [ ] D5: `search_verification_tool` returns paths without `verification/`
+  prefix — fix verification indexer, re-run `pixi run embed-verification`,
+  rebuild image
+- [ ] EXACT_CONSERV gotcha: old `CPP_OPTIONS.h` with `#undef EXACT_CONSERV`
+  causes startup abort; flag was retired (now mandatory). Add to catalogue.
+  (Found in creative exploration C3/C7.)
+- [ ] PHIHYD gotcha verification: agent did not find the
+  `INCLUDE_PHIHYD_CALCULATION_CODE` check in the sections of CONFIG_CHECK
+  read. Verify at higher offset before releasing the gotcha entry.
+- [ ] Rebuild `mitgcm-mcp:latest` with all above fixes
+- [ ] Re-run failing test sections (T3, T6) — full pass required
+
+---
+
 ## Release checklist
 
-- [ ] All tier 1–3 items done
-- [ ] `pixi run test` passes
+- [x] All tier 1–3 items done
+- [x] `pixi run test` passes (341 tests)
 - [ ] `pixi run embed-verification` run and data baked into image
-- [ ] Both images built and pushed (`mcp-v2026.02.x`, `runtime-v2026.02.x`)
+- [ ] Both images built and pushed (`mcp-v2026.02.5`, `runtime-v2026.02.5`)
 - [ ] GitHub release created
 - [ ] Git tag pushed
 - [ ] `docs/release.md` VERSION updated
