@@ -114,8 +114,8 @@ def test_quickstart_has_directory_structure():
 def test_quickstart_build_references_docker_image():
     """Both Dockerfiles should reference the runtime GHCR image."""
     qs = suggest_experiment_config("rotating_convection")["quickstart"]
-    assert "ghcr.io/willirath/2026-mitgcm-mcp" in qs["dockerfile_amd64"]
-    assert "ghcr.io/willirath/2026-mitgcm-mcp" in qs["dockerfile_arm64"]
+    assert "ghcr.io/willirath/ogcmcp" in qs["dockerfile_amd64"]
+    assert "ghcr.io/willirath/ogcmcp" in qs["dockerfile_arm64"]
 
 
 def test_quickstart_both_experiment_types():

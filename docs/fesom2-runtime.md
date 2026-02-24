@@ -16,7 +16,7 @@ No external data or separate FESOM2 installation required.
 
 ```bash
 docker run --rm -v $(pwd)/output:/output \
-  ghcr.io/willirath/2026-mitgcm-mcp:fesom2-v2026.02.1 \
+  ghcr.io/willirath/ogcmcp:fesom2-v2026.02.1 \
   [experiment] [nranks] [ndays]
 ```
 

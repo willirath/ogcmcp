@@ -1,6 +1,7 @@
 # Release process
 
-How to build, publish, and verify a new `ghcr.io/willirath/2026-mitgcm-mcp` release.
+How to build, publish, and verify a new `ghcr.io/willirath/ogcmcp` release.
+
 
 ---
 
@@ -25,7 +26,7 @@ The MICRO is assigned when the release is actually cut.
 
 ## 1. Build and push the runtime image (multi-arch)
 
-The runtime image (`ghcr.io/willirath/2026-mitgcm-mcp:runtime-*`) contains
+The runtime image (`ghcr.io/willirath/ogcmcp:runtime-*`) contains
 gfortran + MPICH + NetCDF-Fortran + the MITgcm source tree baked in at
 `/MITgcm`. Agents use it as a `FROM` base in their experiment Dockerfiles.
 
@@ -33,8 +34,8 @@ gfortran + MPICH + NetCDF-Fortran + the MITgcm source tree baked in at
 VERSION=v2026.02.5
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  -t ghcr.io/willirath/2026-mitgcm-mcp:runtime-${VERSION} \
-  -t ghcr.io/willirath/2026-mitgcm-mcp:runtime-latest \
+  -t ghcr.io/willirath/ogcmcp:runtime-${VERSION} \
+  -t ghcr.io/willirath/ogcmcp:runtime-latest \
   -f docker/mitgcm/Dockerfile \
   --push .
 ```
@@ -45,15 +46,15 @@ Build time: ~3 min (shallow git clone of MITgcm + apt packages).
 
 ## 2. Build and push the MCP image (multi-arch)
 
-The MCP image (`ghcr.io/willirath/2026-mitgcm-mcp:mcp-*`) bundles Ollama,
+The MCP image (`ghcr.io/willirath/ogcmcp:mcp-*`) bundles Ollama,
 the embedding model, Python runtime, and pre-built indices from `data/`.
 
 ```bash
 VERSION=v2026.02.5
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  -t ghcr.io/willirath/2026-mitgcm-mcp:mcp-${VERSION} \
-  -t ghcr.io/willirath/2026-mitgcm-mcp:mcp-latest \
+  -t ghcr.io/willirath/ogcmcp:mcp-${VERSION} \
+  -t ghcr.io/willirath/ogcmcp:mcp-latest \
   -f docker/mcp/Dockerfile \
   --push .
 ```
@@ -74,7 +75,7 @@ pixi run build-mcp-image
 
 ### Set package visibility to public
 
-GitHub → profile → Packages → `2026-mitgcm-mcp` → Package settings →
+GitHub → profile → Packages → `ogcmcp` → Package settings →
 Change visibility → Public.
 
 This must be done once before the first release; after that the package
@@ -87,14 +88,14 @@ stays public across re-pushes.
 ```bash
 VERSION=v2026.02.5
 gh release create ${VERSION} \
-  --title "MITgcm MCP ${VERSION}" \
-  --notes "MCP image: \`ghcr.io/willirath/2026-mitgcm-mcp:mcp-${VERSION}\`
-Runtime image: \`ghcr.io/willirath/2026-mitgcm-mcp:runtime-${VERSION}\`
+  --title "OGCMCP ${VERSION}" \
+  --notes "MCP image: \`ghcr.io/willirath/ogcmcp:mcp-${VERSION}\`
+Runtime image: \`ghcr.io/willirath/ogcmcp:runtime-${VERSION}\`
 
 Install MCP server:
 \`\`\`bash
 claude mcp add --transport stdio --scope user mitgcm -- \\
-  docker run --rm -i ghcr.io/willirath/2026-mitgcm-mcp:mcp-${VERSION}
+  docker run --rm -i ghcr.io/willirath/ogcmcp:mcp-${VERSION}
 \`\`\`
 
 MITgcm source: submodule pinned at \`decd05a\` (checkpoint69k)."
@@ -107,10 +108,10 @@ MITgcm source: submodule pinned at \`decd05a\` (checkpoint69k)."
 On a clean machine (or after removing the local image):
 
 ```bash
-docker rmi ghcr.io/willirath/2026-mitgcm-mcp:mcp-v2026.02.5 2>/dev/null || true
+docker rmi ghcr.io/willirath/ogcmcp:mcp-v2026.02.5 2>/dev/null || true
 
 claude mcp add --transport stdio --scope user mitgcm -- \
-  docker run --rm -i ghcr.io/willirath/2026-mitgcm-mcp:mcp-v2026.02.5
+  docker run --rm -i ghcr.io/willirath/ogcmcp:mcp-v2026.02.5
 ```
 
 Then in a Claude Code session:
@@ -147,7 +148,7 @@ amd64 QEMU GPG issue.
 
 | Image tag prefix | Purpose | Base | Approx. size |
 |---|---|---|---|
-| `ghcr.io/willirath/2026-mitgcm-mcp:mcp-*` | User-facing MCP server | `python:3.13-slim` | ~515 MB |
-| `ghcr.io/willirath/2026-mitgcm-mcp:runtime-*` | MITgcm build environment for agent Dockerfiles | `debian:bookworm-slim` | ~300 MB |
+| `ghcr.io/willirath/ogcmcp:mcp-*` | User-facing MCP server | `python:3.13-slim` | ~515 MB |
+| `ghcr.io/willirath/ogcmcp:runtime-*` | MITgcm build environment for agent Dockerfiles | `debian:bookworm-slim` | ~300 MB |
 
 Pinned digests for current images are in the respective Dockerfiles under `docker/`.

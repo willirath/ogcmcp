@@ -9,12 +9,12 @@ up with zero network configuration.
 **Claude Code:**
 ```bash
 claude mcp add --transport stdio --scope user mitgcm -- \
-  docker run --rm -i ghcr.io/willirath/2026-mitgcm-mcp:mcp-v2026.02.5
+  docker run --rm -i ghcr.io/willirath/ogcmcp:mcp-v2026.02.5
 ```
 
 **Codex CLI:**
 ```bash
-codex mcp add mitgcm -- docker run --rm -i ghcr.io/willirath/2026-mitgcm-mcp:mcp-v2026.02.5
+codex mcp add mitgcm -- docker run --rm -i ghcr.io/willirath/ogcmcp:mcp-v2026.02.5
 ```
 
 ## Development use

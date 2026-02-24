@@ -1,9 +1,9 @@
-# MITgcm MCP
+# OGCMCP
 
-An MCP server that gives Claude Code live access to the MITgcm source code
-graph, documentation, and a domain knowledge layer for experiment design.
-Ask questions in natural language; the tools retrieve answers directly from
-the indexed source and docs.
+MCP servers that give Claude Code live access to ocean model source code,
+documentation, and domain knowledge layers for experiment design.
+Currently supports MITgcm and FESOM2; ask questions in natural language
+and the tools retrieve answers directly from the indexed source and docs.
 
 ## Install
 
@@ -12,12 +12,12 @@ Requires Docker and Claude Code or Codex CLI.
 **Claude Code:**
 ```bash
 claude mcp add --transport stdio --scope user mitgcm -- \
-  docker run --rm -i ghcr.io/willirath/2026-mitgcm-mcp:mcp-v2026.02.5
+  docker run --rm -i ghcr.io/willirath/ogcmcp:mcp-v2026.02.5
 ```
 
 **Codex CLI:**
 ```bash
-codex mcp add mitgcm -- docker run --rm -i ghcr.io/willirath/2026-mitgcm-mcp:mcp-v2026.02.5
+codex mcp add mitgcm -- docker run --rm -i ghcr.io/willirath/ogcmcp:mcp-v2026.02.5
 ```
 
 Docker pulls the image on first use (~600 MB — includes Ollama, the embedding
@@ -132,8 +132,8 @@ flowchart TB
 Requires [pixi](https://pixi.sh) and Docker.
 
 ```bash
-git clone --recurse-submodules https://github.com/willirath/2026_mitgcm_mcp
-cd 2026_mitgcm_mcp
+git clone --recurse-submodules https://github.com/willirath/ogcmcp
+cd ogcmcp
 pixi install
 
 # Start the Ollama embedding server

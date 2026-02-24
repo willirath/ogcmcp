@@ -143,7 +143,7 @@ so no `startup_timeout_sec` tuning is needed.
 **Install** (once merged and pushed as `mcp-v2026.02.4`):
 
 ```bash
-codex mcp add mitgcm -- docker run --rm -i ghcr.io/willirath/2026-mitgcm-mcp:mcp-v2026.02.4
+codex mcp add mitgcm -- docker run --rm -i ghcr.io/willirath/ogcmcp:mcp-v2026.02.4
 ```
 
 **Remaining**: add `codex mcp add` install line to README and `docs/mcp-server.md`

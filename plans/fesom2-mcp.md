@@ -95,7 +95,7 @@ _Feedback:_
 **Namespacing** (same repo, two models): Python source uses `fesom2_` prefix
 (`src/fesom2_indexer/`, `src/fesom2_tools.py`, `src/fesom2_server.py`).
 Data artifacts land in `data/fesom2/` (DuckDB, ChromaDB). Docker image is
-separate (`ghcr.io/willirath/2026-mitgcm-mcp:fesom2-mcp-*`). Within each
+separate (`ghcr.io/willirath/ogcmcp:fesom2-mcp-*`). Within each
 server the tool names are not prefixed — namespace comes from which server
 (MCP entry) the user is connected to. Shared Python code (`src/domain/`,
 embedding utilities) stays in place with no prefix.
@@ -360,7 +360,7 @@ _Feedback:_
 - [ ] Multi-arch buildx push to GHCR
 - [ ] `docs/fesom2-release.md` written
 - [ ] Smoke test on clean machine
-- Done when: `docker run --rm -i ghcr.io/willirath/2026-mitgcm-mcp:fesom2-mcp-v2026.03.1`
+- Done when: `docker run --rm -i ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.03.1`
   answers "What controls GM diffusivity?" correctly
 
 _Feedback:_

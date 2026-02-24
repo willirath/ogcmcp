@@ -1,7 +1,7 @@
 [workspace]
 authors = ["Willi Rath <wrath@geomar.de>"]
 channels = ["conda-forge"]
-name = "2026-dtg"
+name = "ogcmcp"
 platforms = ["osx-arm64"]
 version = "0.1.0"
 
@@ -18,7 +18,7 @@ fesom2-embed-docs = "python -u -m src.fesom2.embedder.docs_pipeline"
 fesom2-embed-namelists = "python -u -m src.fesom2.embedder.nml_pipeline"
 fesom2-serve = "python -m src.fesom2.server"
 build-image    = "docker build --platform linux/amd64,linux/arm64 -t mitgcm:latest -f docker/mitgcm/Dockerfile ."
-build-mcp-image = "docker build --platform linux/amd64 -t mitgcm-mcp:latest -f docker/mcp/Dockerfile ."
+build-mcp-image = "docker build --platform linux/amd64 -t ogcmcp:latest -f docker/mcp/Dockerfile ."
 build-fesom2-image = "docker build --platform linux/amd64,linux/arm64 -t fesom2:latest -f docker/fesom2/Dockerfile ."
 setup-tutorial = "bash scripts/setup-tutorial.sh"
 build-tutorial = "bash scripts/build-experiment.sh experiments/mitgcm/tutorial_rotating_tank"
