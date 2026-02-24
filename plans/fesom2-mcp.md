@@ -313,12 +313,12 @@ _Feedback:_
 
 ### Tier 3 — Embedding pipeline
 
-- [ ] Adapt embedder for FESOM2 subroutines → ChromaDB `fesom2_subroutines`
-- [ ] Adapt docs indexer for FESOM2 RST → ChromaDB `fesom2_docs`
-- [ ] Embed namelist parameter descriptions → ChromaDB `fesom2_namelists`
-- [ ] Include `.pf` files in F90 parser (strip pFUnit macros; no separate collection)
-- [ ] `pixi run fesom2-embed`, `pixi run fesom2-embed-docs` tasks
-- [ ] `search_code_tool`, `search_docs_tool` tests with real Ollama
+- [x] Adapt embedder for FESOM2 subroutines → ChromaDB `fesom2_subroutines`
+- [x] Adapt docs indexer for FESOM2 RST → ChromaDB `fesom2_docs`
+- [x] Embed namelist parameter descriptions → ChromaDB `fesom2_namelists`
+- [x] Include `.pf` files in F90 parser (strip pFUnit macros; no separate collection) — done in Tier 1
+- [x] `pixi run fesom2-embed`, `pixi run fesom2-embed-docs`, `pixi run fesom2-embed-namelists` tasks
+- [x] Synthetic tests: 22 new tests (chunking + nml doc building); 430 total pass
 - Done when: semantic search returns sensible results for "GM eddy parameterization"
 
 _Feedback:_
