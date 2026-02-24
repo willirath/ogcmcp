@@ -24,6 +24,8 @@ The smaller codebase and cleaner module structure make FESOM2 easier to index.
 The unstructured-mesh physics introduces new gotchas that MITgcm's domain
 knowledge layer doesn't cover.
 
+_Feedback:_
+
 ---
 
 ## FESOM2 repo survey (submodule at 1b58e7f)
@@ -61,12 +63,17 @@ FESOM2/
 All namelists are heavily commented inline (more self-documenting than MITgcm).
 
 **Setups** in `setups/`: YAML files that override namelist parameters for CI.
-Not analogous to MITgcm verification experiments — they reference external mesh
-data and do not contain standalone physics configurations. Minimal indexing value.
+Each setup pairs a mesh + forcing configuration with a set of namelist overrides
+and expected output values (`fcheck`). They require external mesh data to run,
+but the namelist overrides show which parameters distinguish each physics
+configuration — useful as starting points for experiment design, analogous to
+MITgcm tutorials. Indexed via `list_setups_tool`.
 
 **Docs**: RST Sphinx covering geometry, discretisation (spatial, temporal,
 vertical ALE), forcing, ocean/seaice/cvmix configuration, output, getting
 started. Shorter than MITgcm docs but denser per page.
+
+_Feedback:_
 
 ---
 
@@ -84,6 +91,16 @@ started. Shorter than MITgcm docs but denser per page.
 | FastMCP server pattern | Full | Same `@mcp.tool()` registration |
 | `src/tools.py` helper layer | ~30% | DuckDB queries need module-based schema |
 | `src/indexer/` | ~10% | F77-style parser must be rewritten for F90 |
+
+**Namespacing** (same repo, two models): Python source uses `fesom2_` prefix
+(`src/fesom2_indexer/`, `src/fesom2_tools.py`, `src/fesom2_server.py`).
+Data artifacts land in `data/fesom2/` (DuckDB, ChromaDB). Docker image is
+separate (`ghcr.io/willirath/2026-mitgcm-mcp:fesom2-mcp-*`). Within each
+server the tool names are not prefixed — namespace comes from which server
+(MCP entry) the user is connected to. Shared Python code (`src/domain/`,
+embedding utilities) stays in place with no prefix.
+
+_Feedback:_
 
 ---
 
@@ -103,6 +120,11 @@ FESOM2 uses F90 `MODULE ... CONTAINS ... END MODULE`. The parser must:
 CPP preprocessing: minimal; `#ifdef ENABLE_OPENACC` and `#ifdef DEBUG` blocks
 can be stripped with a simple pass (no per-package CPP flag combinatorics).
 
+`associate_mesh_*.h` Fortran include files: indexed as part of the module that
+includes them, not as standalone entries.
+
+_Feedback:_
+
 ### 2. DuckDB schema — module-based
 
 Replace the `packages`+`subroutines` schema with:
@@ -115,6 +137,8 @@ calls(caller_name, callee_name, caller_module)  -- CALL statements
 namelist_params(param, group, file, module_name, line)
 ```
 
+_Feedback:_
+
 ### 3. Namelist → code linker
 
 Read `config/namelist.*` and the subroutines that contain `NAMELIST / <group> /`
@@ -122,6 +146,14 @@ declarations referencing each parameter. Simpler than MITgcm because:
 - All namelists are in one directory
 - Inline comments give descriptions — parseable without docs lookup
 - The reading modules follow a consistent pattern (e.g. `gen_modules_config.F90`)
+
+The inline comments are rich enough to build a dedicated search collection:
+embed each parameter as `{name} ({group} in {file}): {comment}` into a
+`fesom2_namelists` ChromaDB collection. `search_docs_tool` queries both
+`fesom2_docs` and `fesom2_namelists` so that "what does `K_GM_max` do?"
+returns the namelist description alongside any RST coverage.
+
+_Feedback:_
 
 ### 4. FESOM2-specific domain knowledge
 
@@ -137,33 +169,57 @@ New `suggest_experiment_config_tool` entries:
 - `pi_control` — global pre-industrial control setup pointers
 - `rotating_convection` — transferable from MITgcm domain knowledge
 
+_Feedback:_
+
 ### 5. `list_setups_tool`
 
 Parse `setups/*/setup.yml` to catalogue CI setups with their mesh, forcing,
-namelist overrides, and validation fields (`fcheck`). Lightweight analog of
-`list_verification_experiments_tool`.
+namelist overrides, and validation fields (`fcheck`). Shows which parameters
+distinguish each physics configuration — useful as config starting points.
+
+_Feedback:_
+
+### 6. `src/` subdirectory audit
+
+`int_recom/`, `cvmix_driver/`, `icepack_drivers/`, `async_threads_cpp/` are
+subdirectories under `src/`. Inspect each before deciding what to index:
+some may be third-party libraries (CVMix, Icepack) where only the FESOM2
+driver/interface files should be indexed, not the library internals.
+
+_Feedback:_
+
+### 7. pFUnit tests
+
+8 `.pf` files (~300 lines) covering infrastructure modules only (forcing I/O,
+MPI topology, NetCDF, string utils) — no ocean/sea-ice physics. pFUnit syntax
+is F90 with `@test`/`@assertEqual` macros.
+
+Decision: no separate collection. Strip the pFUnit macros (treat as comments)
+and run `.pf` files through the regular F90 module parser. Test subroutines
+land in `fesom2_subroutines` alongside production code; call graph picks up
+their `USE`/`CALL` statements naturally. No extra embedding pass.
+
+_Feedback:_
 
 ---
 
 ## Repo strategy
 
-Two options:
+**Decision: same repo, `fesom2` branch, namespaced Python source.**
 
-**A. New repo `2026-fesom2-mcp`** (recommended)
-- Clean separation; independent releases and Docker images
-- FESOM2 submodule lives there
-- Copy shared infrastructure (domain knowledge, embedding base) at branch point
-- Risk: duplication; shared fixes must be applied twice
+- `src/fesom2_indexer/` — F90 module parser
+- `src/fesom2_tools.py` — DuckDB + ChromaDB query layer
+- `src/fesom2_server.py` — FastMCP server (separate from `src/server.py`)
+- `data/fesom2/` — DuckDB index + ChromaDB collections
+- `docker/fesom2-mcp/Dockerfile` — separate Docker image
+- `.mcp.json` — two entries: `mitgcm` and `fesom2`
 
-**B. Extend this repo**
-- Add `src/fesom2_indexer/`, `src/fesom2_tools.py`, `src/fesom2_server.py`
-- Single pixi environment; shared domain knowledge naturally
-- Risk: entanglement; single Docker image serving two models gets complex
-- Not recommended: two very different models → two Docker images → two repos cleaner
+Shared: `src/domain/`, embedding pipeline base, `pixi.toml` tasks.
 
-Decision: **new repo** once the FESOM2 branch here is validated as a design
-prototype. The `fesom2` branch in this repo is the staging area for the parser
-and schema work; once Tier 1–2 are passing, migrate to `2026-fesom2-mcp`.
+If the repo grows too complex, the FESOM2 server can be split to
+`2026-fesom2-mcp` with a clean cut at that point.
+
+_Feedback:_
 
 ---
 
@@ -183,13 +239,17 @@ and schema work; once Tier 1–2 are passing, migrate to `2026-fesom2-mcp`.
 | `get_module_uses_tool` | Which modules does module X USE |
 | `namelist_to_code_tool` | Which module reads a namelist parameter |
 
+_Feedback:_
+
 ### Documentation search
 
 | Tool | What it does |
 |---|---|
-| `search_docs_tool` | Semantic search over FESOM2 RST docs |
+| `search_docs_tool` | Semantic search over FESOM2 RST docs + namelist descriptions |
 | `get_doc_source_tool` | Full paginated text of a doc section |
 | `list_setups_tool` | Catalogue of CI setups with mesh/forcing/overrides |
+
+_Feedback:_
 
 ### Domain knowledge
 
@@ -201,14 +261,24 @@ and schema work; once Tier 1–2 are passing, migrate to `2026-fesom2-mcp`.
 | `suggest_experiment_config_tool` | Skeleton config for idealised experiments |
 | `get_namelist_structure_tool` | Map of namelist files → groups → descriptions |
 
+_Feedback:_
+
 ### Workflow guidance
+
+`get_workflow_tool` is model-specific — each server registers its own version
+with FESOM2-appropriate task names (`understand_module` instead of
+`understand_package`, etc.). The underlying Python function is parametrised by
+model but the registered tool carries no prefix.
 
 | Tool | What it does |
 |---|---|
-| `get_workflow_tool` | Recommended tool sequence per task |
+| `get_workflow_tool` | Recommended tool sequence per task (FESOM2-specific) |
 
-**Total: ~18 tools** (vs 21 in MITgcm MCP — fewer because no package flags,
-no verification source tool, no diagnostics fill tool).
+**Total: ~19 tools** (vs 21 in MITgcm MCP — no package flags tool, no
+diagnostics fill tool; adds `find_modules_tool`, `get_module_tool`,
+`get_module_uses_tool`).
+
+_Feedback:_
 
 ---
 
@@ -216,15 +286,19 @@ no verification source tool, no diagnostics fill tool).
 
 ### Tier 1 — F90 module parser → DuckDB
 
+- [ ] Audit `src/` subdirs (`int_recom/`, `cvmix_driver/`, `icepack_drivers/`, `async_threads_cpp/`)
 - [ ] Parse `.F90` files: extract modules, subroutines, functions
+- [ ] Handle `associate_mesh_*.h` includes as part of parent module
 - [ ] Extract USE statements; build module dependency graph
 - [ ] Extract CALL statements within subroutines
 - [ ] DuckDB schema: `modules`, `subroutines`, `uses`, `calls`
 - [ ] Strip minimal CPP (`#ifdef` blocks)
 - [ ] Tests: synthetic F90 fixtures
-- [ ] `pixi run index` task
+- [ ] `pixi run fesom2-index` task
 - Done when: `find_modules_tool`, `find_subroutines_tool`, `get_source_tool`,
   `get_callers_tool`, `get_callees_tool`, `get_module_uses_tool` all pass tests
+
+_Feedback:_
 
 ### Tier 2 — Namelist → code linker
 
@@ -235,13 +309,19 @@ no verification source tool, no diagnostics fill tool).
 - [ ] Tests: synthetic namelist + F90 fixture
 - Done when: `namelist_to_code_tool("step_per_day")` returns `gen_modules_config`
 
+_Feedback:_
+
 ### Tier 3 — Embedding pipeline
 
 - [ ] Adapt embedder for FESOM2 subroutines → ChromaDB `fesom2_subroutines`
 - [ ] Adapt docs indexer for FESOM2 RST → ChromaDB `fesom2_docs`
-- [ ] `pixi run embed`, `pixi run embed-docs` tasks
+- [ ] Embed namelist parameter descriptions → ChromaDB `fesom2_namelists`
+- [ ] Include `.pf` files in F90 parser (strip pFUnit macros; no separate collection)
+- [ ] `pixi run fesom2-embed`, `pixi run fesom2-embed-docs` tasks
 - [ ] `search_code_tool`, `search_docs_tool` tests with real Ollama
 - Done when: semantic search returns sensible results for "GM eddy parameterization"
+
+_Feedback:_
 
 ### Tier 4 — Domain knowledge layer
 
@@ -251,49 +331,47 @@ no verification source tool, no diagnostics fill tool).
 - [ ] Tests: keyword-based gotcha tests (synthetic)
 - Done when: `lookup_gotcha_tool("ALE")` returns meaningful entries
 
+_Feedback:_
+
 ### Tier 5 — Setups catalogue
 
 - [ ] Parse `setups/*/setup.yml` → `list_setups_tool` response
 - [ ] Tests: parse synthetic YAML
-- Done when: `list_setups_tool()` returns all 14 setups with mesh/forcing fields
+- Done when: `list_setups_tool()` returns all setups with mesh/forcing/override fields
+
+_Feedback:_
 
 ### Tier 6 — MCP server + FastMCP wiring
 
-- [ ] `src/fesom2_server.py` with all 18 tools registered
+- [ ] `src/fesom2_server.py` with all ~19 tools registered
 - [ ] Tool descriptions tuned for FESOM2 concepts
 - [ ] `get_workflow_tool` workflows: `design_experiment`, `debug_configuration`,
   `understand_module`, `explore_code`
-- [ ] `test_server.py` — tool count + name coverage
+- [ ] `test_fesom2_server.py` — tool count + name coverage
+- [ ] Update `.mcp.json` with `fesom2` entry
 - Done when: all tests pass with `pixi run test`
+
+_Feedback:_
 
 ### Tier 7 — Docker packaging + release
 
 - [ ] `docker/fesom2-mcp/Dockerfile` — Python + Ollama + indices
 - [ ] Multi-arch buildx push to GHCR
-- [ ] `docs/release.md` updated
+- [ ] `docs/fesom2-release.md` written
 - [ ] Smoke test on clean machine
-- Done when: `docker run --rm -i ghcr.io/willirath/2026-fesom2-mcp:mcp-v2026.03.1`
+- Done when: `docker run --rm -i ghcr.io/willirath/2026-mitgcm-mcp:fesom2-mcp-v2026.03.1`
   answers "What controls GM diffusivity?" correctly
+
+_Feedback:_
 
 ---
 
 ## Open questions
 
-1. **Repo migration timing**: At what tier does the `fesom2` branch become its
-   own repo? Recommendation: after Tier 1 tests pass, fork to
-   `2026-fesom2-mcp` and continue there.
+1. **`int_recom/`, `cvmix_driver/`, `icepack_drivers/`, `async_threads_cpp/`**:
+   Inspect each subdirectory before deciding scope. Index FESOM2 driver/interface
+   files; determine whether library internals (CVMix, Icepack) should be included
+   or skipped.
 
-2. **`associate_mesh_*.h` files**: Fortran include files in `src/` that define
-   mesh accessor macros. Should be indexed as part of the module that includes
-   them (not as standalone files). Treat as part of the parent module.
+   _Feedback:_ Yes, dig in before we decide anything.
 
-3. **`int_recom/`, `cvmix_driver/`, `icepack_drivers/`, `async_threads_cpp/`**:
-   These are subdirectories in `src/`. Recurse into them for F90 files, but
-   inspect first — some may be third-party (e.g. CVMix, Icepack are external
-   libraries). Index FESOM2 driver/interface files only, skip pure library code.
-
-4. **pFUnit tests** (`.pf` files): Parseable as F90 (pFUnit extends F90 with
-   macros). Low value for the MCP; skip for now.
-
-5. **Security flag**: Should the FESOM2 MCP image add `--security-opt
-   no-new-privileges` to install docs? Carry from MITgcm v2026.02 open item.
