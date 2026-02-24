@@ -450,8 +450,8 @@ Container currently runs as root. Add a dedicated non-root user.
 - [x] Tiers 5–9 done
 - [x] `pixi run embed-verification` run and data baked into image
 - [x] Both images built and pushed (`mcp-v2026.02.5`, `runtime-v2026.02.5`)
-- [ ] GitHub release created
-- [ ] Git tag pushed
+- [x] GitHub release created
+- [x] Git tag pushed
 - [x] `docs/release.md` VERSION updated
 - [x] `.mcp.json` updated
 - [x] `README.md` and `docs/mcp-server.md` install commands updated
