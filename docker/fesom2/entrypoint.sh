@@ -65,6 +65,9 @@ for nml in namelist.cvmix namelist.ice namelist.io namelist.dyn namelist.forcing
     [ -f "${nml}" ] || cp "/fesom2/config/${nml}" .
 done
 
+# Switch output frequency from monthly to daily — toy runs are short
+sed -i "s/,1, 'm', /,1, 'd', /g" namelist.io
+
 # --- Patch namelist.config at runtime and write fesom.clock ------------------
 python3 - <<PYEOF
 import re
