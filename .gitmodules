@@ -1,3 +1,6 @@
 [submodule "MITgcm"]
 	path = MITgcm
 	url = https://github.com/MITgcm/MITgcm
+[submodule "FESOM2"]
+	path = FESOM2
+	url = https://github.com/FESOM/fesom2.git
