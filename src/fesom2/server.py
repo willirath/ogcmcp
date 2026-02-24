@@ -87,8 +87,19 @@ def get_subroutine_tool(name: str, module: str | None = None) -> dict | None:
     Pass ``module=`` to disambiguate when a name appears in multiple modules.
     Use ``find_subroutines_tool`` to discover which modules contain the name,
     then ``get_source_tool`` to retrieve the actual source lines.
+
+    When a name is ambiguous and ``module=`` is omitted, returns a
+    ``{"disambiguation_needed": True, "matches": [...]}`` dict rather than
+    erroring — safe to call in parallel with other tools.
     """
-    result = get_subroutine(name, module=module)
+    try:
+        result = get_subroutine(name, module=module)
+    except ValueError as exc:
+        return {
+            "disambiguation_needed": True,
+            "message": str(exc),
+            "matches": find_subroutines(name),
+        }
     if result is None:
         return None
     result.pop("source_text", None)
@@ -107,8 +118,19 @@ def get_source_tool(
     Returns {name, module_name, total_lines, offset, lines}. Returns None if
     not found. Pass ``module=`` when a name is shared across modules to select
     the correct copy.
+
+    When a name is ambiguous and ``module=`` is omitted, returns a
+    ``{"disambiguation_needed": True, "matches": [...]}`` dict rather than
+    erroring — safe to call in parallel with other tools.
     """
-    result = get_subroutine(name, module=module)
+    try:
+        result = get_subroutine(name, module=module)
+    except ValueError as exc:
+        return {
+            "disambiguation_needed": True,
+            "message": str(exc),
+            "matches": find_subroutines(name),
+        }
     if result is None:
         return None
     all_lines = result["source_text"].splitlines()
@@ -227,8 +249,11 @@ def get_doc_source_tool(
 
 
 @mcp.tool()
-def list_setups_tool() -> list[dict]:
-    """Return the complete FESOM2 setup catalogue.
+def list_setups_tool(
+    name: str | None = None,
+    source: str | None = None,
+) -> list[dict]:
+    """Return FESOM2 setup records, optionally filtered.
 
     Each record has:
 
@@ -243,15 +268,30 @@ def list_setups_tool() -> list[dict]:
     fcheck   : variable → expected float (CI setups only; {} for reference)
     notes    : free-text description
 
-    **When to use:**
-    - Filter ``source="reference_namelist"`` to get complete annotated starting
-      configs (toy_neverworld2, toy_dbgyre, toy_soufflet, forcing presets).
-    - Filter ``source="ci_setup"`` to see what overrides each physics variant
-      (cavity, icepack, zstar, linfs, icebergs, floatice, visc7, partial).
+    Parameters
+    ----------
+    name : str or None
+        Substring filter on the record name (case-insensitive).
+        E.g. ``name="neverworld2"`` returns ``toy_neverworld2`` and
+        ``test_neverworld2``. Omit to return all names.
+    source : str or None
+        Exact filter on source type: ``"reference_namelist"`` or
+        ``"ci_setup"``. Omit to return both.
 
-    No arguments. Returns all records sorted by name within each source type.
+    **When to use:**
+    - ``source="reference_namelist"`` → complete annotated starting configs
+      (toy_neverworld2, toy_dbgyre, toy_soufflet, forcing presets).
+    - ``source="ci_setup"`` → sparse overrides for CI-tested physics variants
+      (cavity, icepack, zstar, linfs, icebergs, floatice, visc7, partial).
+    - ``name="cavity"`` → all cavity-related setups across both sources.
     """
-    return list_setups()
+    records = list_setups()
+    if name is not None:
+        needle = name.lower()
+        records = [r for r in records if needle in r["name"].lower()]
+    if source is not None:
+        records = [r for r in records if r["source"] == source]
+    return records
 
 
 # ── Domain knowledge ──────────────────────────────────────────────────────────

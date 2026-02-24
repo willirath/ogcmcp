@@ -70,6 +70,26 @@ def test_cavity_found():
     assert len(results) >= 1
 
 
+def test_toy_ocean_found():
+    results = lookup_gotcha("toy_ocean")
+    assert len(results) >= 1
+
+
+def test_toy_ocean_neverworld2_keyword():
+    results = lookup_gotcha("neverworld2 windstress")
+    assert len(results) >= 1
+
+
+def test_toy_module_variables_found():
+    results = lookup_gotcha("do_wind")
+    assert len(results) >= 1
+
+
+def test_toy_module_variables_compile_time():
+    results = lookup_gotcha("compile time module variable")
+    assert len(results) >= 1
+
+
 def test_case_insensitive():
     lower = lookup_gotcha("ale vertical coordinate")
     upper = lookup_gotcha("ALE Vertical Coordinate")

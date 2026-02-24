@@ -29,6 +29,18 @@ def test_baroclinic_channel_has_namelists():
     assert "namelist.config" in result["namelists"]
 
 
+def test_baroclinic_channel_no_forcing_namelist():
+    # toy_ocean=.true. bypasses the forcing pipeline — skeleton must not include it
+    result = suggest_experiment_config("baroclinic_channel")
+    assert "namelist.forcing" not in result["namelists"]
+
+
+def test_baroclinic_channel_notes_mention_windstress_file():
+    result = suggest_experiment_config("baroclinic_channel")
+    notes_text = " ".join(result["notes"])
+    assert "windstress" in notes_text.lower()
+
+
 def test_baroclinic_channel_has_notes():
     result = suggest_experiment_config("baroclinic_channel")
     assert result["notes"]
