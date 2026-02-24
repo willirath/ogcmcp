@@ -11,6 +11,7 @@ from src.tools import (
     get_doc_source,
     get_package_flags,
     get_subroutine,
+    get_verification_source,
     list_verification_experiments,
     namelist_to_code,
     search_code,
@@ -442,11 +443,33 @@ def search_verification_tool(query: str, top_k: int = 5) -> list[dict]:
     verification experiments.  Returns up to top_k results.
 
     Each result has: experiment, file, filename, snippet (first 400 chars).
-    Use get_doc_source_tool with the returned file path to read the full content.
+    Use get_verification_source_tool with the returned file path to read the
+    full content.
 
     Requires Ollama and pixi run embed-verification to have been run.
     """
     return search_verification(query, top_k=top_k)
+
+
+@mcp.tool()
+def get_verification_source_tool(
+    file: str, offset: int = 0, limit: int = 200
+) -> dict | None:
+    """Return paginated full text of a verification experiment file.
+
+    Retrieves the complete content of a single file from a MITgcm verification
+    or tutorial experiment — namelists, SIZE.h, packages.conf, etc.
+
+    file   : path as returned by search_verification_tool
+             (e.g. "verification/rotating_convection/input/data")
+    offset : first line to return (0-based); default 0
+    limit  : max lines to return; default 200
+
+    Returns {file, total_lines, offset, lines} or null if not found.
+    Call repeatedly with increasing offset to page through large files.
+    Use search_verification_tool first to discover file paths.
+    """
+    return get_verification_source(file, offset=offset, limit=limit)
 
 
 @mcp.tool()

@@ -358,6 +358,56 @@ def get_doc_source(
     }
 
 
+def get_verification_source(
+    file: str,
+    offset: int = 0,
+    limit: int = 200,
+    _chroma_path: Path = CHROMA_PATH,
+) -> dict | None:
+    """Return paginated full text of a verification experiment file.
+
+    Retrieves all stored chunks for the given file path, reassembles them in
+    chunk order (respecting overlap), and returns paginated lines.
+
+    Use search_verification to discover file paths.
+    Returns {file, total_lines, offset, lines} or None if not found.
+    """
+    from .embedder.pipeline import OVERLAP
+
+    collection = get_collection(VERIFICATION_COLLECTION_NAME, _chroma_path)
+    results = collection.get(
+        where={"file": {"$eq": file}},
+        include=["metadatas", "documents"],
+    )
+
+    if not results["ids"]:
+        return None
+
+    chunks = sorted(
+        zip(results["metadatas"], results["documents"]),
+        key=lambda x: x[0]["chunk_index"],
+    )
+
+    # Strip the prepended "[file]\n" header from each chunk
+    header = f"[{file}]\n"
+    header_len = len(header)
+    raw_chunks = [doc[header_len:] for _, doc in chunks]
+
+    # Reassemble: chunk 0 in full; each subsequent chunk skips the OVERLAP prefix
+    text = raw_chunks[0]
+    for raw in raw_chunks[1:]:
+        text += raw[OVERLAP:]
+
+    all_lines = text.splitlines()
+    total = len(all_lines)
+    return {
+        "file": file,
+        "total_lines": total,
+        "offset": offset,
+        "lines": all_lines[offset: offset + limit],
+    }
+
+
 def list_verification_experiments() -> list[dict]:
     """Return structured catalogue of all MITgcm verification/tutorial experiments.
 

@@ -29,6 +29,7 @@ EXPECTED_TOOLS = {
     "get_workflow_tool",
     "list_verification_experiments_tool",
     "search_verification_tool",
+    "get_verification_source_tool",
     "get_namelist_structure_tool",
 }
 
