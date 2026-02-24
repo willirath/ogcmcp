@@ -286,15 +286,15 @@ _Feedback:_
 
 ### Tier 1 — F90 module parser → DuckDB
 
-- [ ] Audit `src/` subdirs (`int_recom/`, `cvmix_driver/`, `icepack_drivers/`, `async_threads_cpp/`)
-- [ ] Parse `.F90` files: extract modules, subroutines, functions
-- [ ] Handle `associate_mesh_*.h` includes as part of parent module
-- [ ] Extract USE statements; build module dependency graph
-- [ ] Extract CALL statements within subroutines
-- [ ] DuckDB schema: `modules`, `subroutines`, `uses`, `calls`
-- [ ] Strip minimal CPP (`#ifdef` blocks)
-- [ ] Tests: synthetic F90 fixtures
-- [ ] `pixi run fesom2-index` task
+- [x] Audit `src/` subdirs (`int_recom/`, `cvmix_driver/`, `icepack_drivers/`, `async_threads_cpp/`)
+- [x] Parse `.F90` files: extract modules, subroutines, functions
+- [x] Handle `associate_mesh_*.h` includes as part of parent module
+- [x] Extract USE statements; build module dependency graph
+- [x] Extract CALL statements within subroutines
+- [x] DuckDB schema: `modules`, `subroutines`, `uses`, `calls`
+- [x] Strip minimal CPP (`#ifdef` blocks)
+- [x] Tests: synthetic F90 fixtures (29 tests)
+- [x] `pixi run fesom2-index` task
 - Done when: `find_modules_tool`, `find_subroutines_tool`, `get_source_tool`,
   `get_callers_tool`, `get_callees_tool`, `get_module_uses_tool` all pass tests
 
