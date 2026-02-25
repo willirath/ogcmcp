@@ -18,6 +18,9 @@ EXPECTED_TOOLS = {
     "search_docs_tool",
     "get_doc_source_tool",
     "list_setups_tool",
+    # Forcing catalogue
+    "list_forcing_datasets_tool",
+    "get_forcing_spec_tool",
     # Domain knowledge
     "translate_lab_params_tool",
     "check_scales_tool",

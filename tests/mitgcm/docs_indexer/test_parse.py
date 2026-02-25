@@ -45,6 +45,11 @@ def tmp_mitgcm_root(tmp_path):
     eesupp_inc.mkdir(parents=True)
     (eesupp_inc / "EXCH.h").write_text("C Exchange buffer declarations\n      COMMON /EXCH/ exchUseMPI\n")
 
+    # package headers
+    pkg_obcs = mitgcm / "pkg" / "obcs"
+    pkg_obcs.mkdir(parents=True)
+    (pkg_obcs / "OBCS_FIELDS.h").write_text("C OBCS boundary fields\n      COMMON /OBCS_FIELDS/ OBNu, OBNv\n")
+
     return mitgcm
 
 
@@ -93,6 +98,12 @@ def test_iter_headers_skips_empty_files(tmp_mitgcm_root):
     headers = iter_headers(tmp_mitgcm_root)
     filenames = {h["file"] for h in headers}
     assert not any("empty.h" in f for f in filenames)
+
+
+def test_iter_headers_finds_pkg_headers(tmp_mitgcm_root):
+    headers = iter_headers(tmp_mitgcm_root)
+    filenames = {h["file"] for h in headers}
+    assert "pkg/obcs/OBCS_FIELDS.h" in filenames
 
 
 def test_iter_headers_has_required_keys(tmp_mitgcm_root):

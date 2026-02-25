@@ -27,6 +27,7 @@ def iter_headers(mitgcm_root: Path) -> list[dict]:
         mitgcm_root.glob("verification/*/code/*.h"),
         mitgcm_root.glob("model/inc/*.h"),
         mitgcm_root.glob("eesupp/inc/*.h"),
+        mitgcm_root.glob("pkg/*/*.h"),
     ]
     for h_path in sorted(itertools.chain(*globs)):
         text = h_path.read_text(encoding="utf-8", errors="replace")

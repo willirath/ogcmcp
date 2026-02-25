@@ -8,9 +8,11 @@ from src.fesom2.tools import (
     get_callers,
     get_callees,
     get_doc_source,
+    get_forcing_spec,
     get_module,
     get_module_uses,
     get_subroutine,
+    list_forcing_datasets,
     list_setups,
     namelist_to_code,
     search_code,
@@ -247,6 +249,41 @@ def get_doc_source_tool(
     Returns {file, section, total_lines, offset, lines} or None if not found.
     """
     return get_doc_source(file, section, offset=offset, limit=limit)
+
+
+@mcp.tool()
+def list_forcing_datasets_tool() -> list[str]:
+    """Return names of all available FESOM2 forcing datasets.
+
+    Reads ``FESOM2/setups/forcings.yml`` and returns the dataset identifiers
+    (e.g. ``["CORE2", "ERA5", "JRA55", "test_global"]``).
+
+    Returns an empty list if the catalogue file is not present.
+    Follow up with ``get_forcing_spec_tool`` to get the full specification.
+    """
+    return list_forcing_datasets()
+
+
+@mcp.tool()
+def get_forcing_spec_tool(dataset: str) -> dict | None:
+    """Return the full specification for a FESOM2 forcing dataset.
+
+    Looks up the named dataset in ``FESOM2/setups/forcings.yml``.
+    Lookup is case-insensitive (``"ERA5"`` and ``"era5"`` both work).
+
+    Parameters
+    ----------
+    dataset : str
+        Dataset name, e.g. ``"CORE2"``, ``"JRA55"``, ``"ERA5"``.
+
+    Returns
+    -------
+    dict or None
+        Keys: forcing_exchange_coeff, forcing_bulk, land_ice, nam_sbc,
+        and optionally namelist.config overrides.
+        Returns None if the dataset is not found.
+    """
+    return get_forcing_spec(dataset)
 
 
 @mcp.tool()
