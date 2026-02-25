@@ -526,6 +526,66 @@ FESOM2 module names don't follow file-name conventions. Use
 
 ---
 
+## Tier 11 — v2026.02.7: submodule coverage gaps
+
+Coverage audit (2026-02-25) identified content in the MITgcm and FESOM2
+submodules not reachable through any MCP tool.
+
+Done when: all items below checked, images rebuilt and smoke-tested.
+
+### 11.1 MITgcm: index core model headers
+
+`model/inc/*.h` (PARAMS.h, DYNVARS.h, GRID.h, EOS.h, FFIELDS.h, …) and
+`eesupp/inc/*.h` are embedded for semantic search but absent from the DuckDB
+code graph. Agents cannot ask "what variables does DYNVARS.h declare?"
+
+- [ ] Extend indexer to parse `.h` files in `model/inc/` and `eesupp/inc/`
+      and store variable/parameter declarations in DuckDB
+- [ ] Add tool or extend `get_source_tool` to retrieve header content
+
+### 11.2 MITgcm: index package data headers
+
+`pkg/*/` contains non-OPTIONS headers (e.g. `SEAICE.h`, `EXF.h`) that define
+package-level common blocks and parameters. Currently unindexed.
+
+- [ ] Extend embedder/indexer to cover `pkg/*/*.h` beyond `*_OPTIONS.h`
+
+### 11.3 MITgcm: index additional verification namelists
+
+`verification/*/input/data.diagnostics`, `data.pkg`, `data.mnc`, `data.rbcs`
+are not indexed — only `data*` matching the main namelist and `eedata` are.
+Agents cannot search diagnostics configuration examples.
+
+- [ ] Extend `verification_indexer/pipeline.py` to include all text files
+      in `input/` (already done for `code/`; remove the filename filter on `input/`)
+
+### 11.4 FESOM2: index forcings.yml and add get_forcing_spec_tool
+
+`FESOM2/setups/forcings.yml` contains bulk formula coefficients, file prefix
+patterns, and variable names for CORE2, JRA55, ERA5, NCEP, NCEP2. Not indexed.
+Agents know a setup uses "CORE2" but cannot query what files or variables it needs.
+
+- [ ] Parse `forcings.yml` into DuckDB or expose as static catalogue
+- [ ] Add `get_forcing_spec_tool(dataset)` returning coefficients, file
+      prefixes, variable names, calendar parameters
+
+### 11.5 FESOM2: embed visualization tool READMEs
+
+`FESOM2/visualization/` contains pyfesom2, view, tripyview, spheRlab — agents
+have no way to discover what post-processing tools exist or which to use.
+
+- [ ] Add `FESOM2/visualization/*/README*` to the FESOM2 docs embedding pipeline
+- [ ] Add gotcha or workflow note guiding agents to available tools
+
+### 11.6 FESOM2: index src header and include files
+
+`FESOM2/src/*.h` and `*.inc` (mesh association macros, gather templates) are
+not indexed. Currently only `.F90` subroutines are covered.
+
+- [ ] Extend FESOM2 embedder to include `.h` and `.inc` files in `src/`
+
+---
+
 ## Release checklist — v2026.02.6
 
 - [x] All tier 1–10 items done
@@ -533,6 +593,6 @@ FESOM2 module names don't follow file-name conventions. Use
 - [x] All embed/index steps run; data baked into images
 - [x] All 4 images built and pushed (`mitgcm-mcp-v2026.02.6`, `mitgcm-runtime-v2026.02.6`, `fesom2-mcp-v2026.02.6`, `fesom2-runtime-v2026.02.6`)
 - [x] Smoke tests: all critical rows pass (runs 1–3, two agents)
-- [ ] PR merged to main
-- [ ] Git tag `v2026.02.6` pushed
-- [ ] GitHub release created
+- [x] PR merged to main
+- [x] Git tag `v2026.02.6` pushed
+- [x] GitHub release created
