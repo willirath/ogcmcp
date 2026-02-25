@@ -365,6 +365,18 @@ def get_doc_source(
     }
 
 
+def list_forcing_datasets() -> list[str]:
+    """Return names of all available FESOM2 forcing datasets."""
+    from src.fesom2.domain.forcing import list_forcing_datasets as _list
+    return _list()
+
+
+def get_forcing_spec(dataset: str) -> dict | None:
+    """Return the full specification for a FESOM2 forcing dataset (case-insensitive)."""
+    from src.fesom2.domain.forcing import get_forcing_spec as _get
+    return _get(dataset)
+
+
 def list_setups(_fesom2_root: Path | None = None) -> list[dict]:
     """Return all FESOM2 setup records (reference namelists + CI setups)."""
     from src.fesom2.setups import list_setups as _list_setups
