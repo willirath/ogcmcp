@@ -130,6 +130,35 @@ CATALOGUE: list[dict] = [
         ),
     },
     {
+        "title": "Four namelist.forcing groups are always required regardless of forcing_opt",
+        "keywords": [
+            "namelist.forcing", "forcing_exchange_coeff", "forcing_bulk", "land_ice",
+            "age_tracer", "forcing_opt", "toy_ocean", "nam_sbc", "required groups",
+            "could not read namelist", "iostat", "namelist parse",
+        ],
+        "summary": (
+            "setup_model reads four namelist.forcing groups unconditionally — "
+            "forcing_exchange_coeff, forcing_bulk, land_ice, and age_tracer — "
+            "before any forcing_opt check and regardless of toy_ocean. "
+            "A missing group aborts the run even when forcing is not used."
+        ),
+        "detail": (
+            "FESOM2's setup_model (gen_model_setup.F90) opens namelist.forcing and "
+            "reads four groups before any conditional logic: forcing_exchange_coeff, "
+            "forcing_bulk, land_ice, and age_tracer. If any group is absent the "
+            "Fortran namelist parser sets iostat /= 0 and check_namelist_read aborts "
+            "the run with 'Could not read namelist <group>'. This happens even when "
+            "forcing_opt=0 or toy_ocean=.true. — the parse is unconditional. "
+            "The only conditionally-read group is nam_sbc, which is only parsed when "
+            "use_ice=.true. (inside sbc_ini called from gen_forcing_init.F90). "
+            "Safe minimal defaults for the groups most likely to be omitted: "
+            "&age_tracer use_age_tracer=.false., use_age_mask=.false., "
+            "age_tracer_path='./mesh/', age_start_year=2000 /. "
+            "Use get_forcing_spec_tool to get per-dataset values for the other three "
+            "groups; age_tracer defaults are always included in that response."
+        ),
+    },
+    {
         "title": "Forcing interpolation weights must be precomputed",
         "keywords": [
             "forcing", "interpolation", "weights", "interp", "era5", "core2",

@@ -66,6 +66,18 @@ def test_forcing_interpolation_found():
     assert len(results) >= 1
 
 
+def test_namelist_forcing_required_groups_found():
+    results = lookup_gotcha("namelist.forcing age_tracer")
+    assert len(results) >= 1
+
+
+def test_namelist_forcing_gotcha_mentions_four_groups():
+    results = lookup_gotcha("forcing_exchange_coeff")
+    entry = next(r for r in results if "Four" in r["title"])
+    for group in ("forcing_exchange_coeff", "forcing_bulk", "land_ice", "age_tracer"):
+        assert group in entry["detail"]
+
+
 def test_output_namelist_found():
     results = lookup_gotcha("namelist.io output")
     assert len(results) >= 1

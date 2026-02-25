@@ -279,9 +279,11 @@ def get_forcing_spec_tool(dataset: str) -> dict | None:
     Returns
     -------
     dict or None
-        Keys: forcing_exchange_coeff, forcing_bulk, land_ice, nam_sbc,
-        and optionally namelist.config overrides.
-        Returns None if the dataset is not found.
+        Keys: forcing_exchange_coeff, forcing_bulk, land_ice, age_tracer,
+        nam_sbc (if present), and optionally namelist.config overrides.
+        age_tracer is always included with safe Fortran defaults because
+        setup_model reads it unconditionally from namelist.forcing regardless
+        of forcing_opt or toy_ocean. Returns None if the dataset is not found.
     """
     return get_forcing_spec(dataset)
 

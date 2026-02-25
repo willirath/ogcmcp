@@ -52,11 +52,33 @@ def test_get_exact_match(tmp_path):
     spec = {"forcing_bulk": "kara", "land_ice": False}
     p = _write_forcings(tmp_path, {"ERA5": spec})
     result = get_forcing_spec("ERA5", p)
-    assert result == spec
+    # age_tracer defaults are always injected
+    assert result["forcing_bulk"] == "kara"
+    assert result["land_ice"] is False
+    assert "age_tracer" in result
 
 
 def test_get_case_insensitive(tmp_path):
     spec = {"forcing_bulk": "kara"}
     p = _write_forcings(tmp_path, {"ERA5": spec})
-    assert get_forcing_spec("era5", p) == spec
-    assert get_forcing_spec("Era5", p) == spec
+    assert get_forcing_spec("era5", p)["forcing_bulk"] == "kara"
+    assert get_forcing_spec("Era5", p)["forcing_bulk"] == "kara"
+
+
+def test_get_always_includes_age_tracer_defaults(tmp_path):
+    """age_tracer is injected even when absent from forcings.yml."""
+    spec = {"forcing_bulk": "kara"}
+    p = _write_forcings(tmp_path, {"ERA5": spec})
+    result = get_forcing_spec("ERA5", p)
+    assert "age_tracer" in result
+    assert result["age_tracer"]["use_age_tracer"] is False
+    assert result["age_tracer"]["age_start_year"] == 2000
+
+
+def test_get_yml_age_tracer_overrides_defaults(tmp_path):
+    """If forcings.yml provides age_tracer, it wins over defaults."""
+    spec = {"forcing_bulk": "kara", "age_tracer": {"use_age_tracer": True, "age_start_year": 1990}}
+    p = _write_forcings(tmp_path, {"ERA5": spec})
+    result = get_forcing_spec("ERA5", p)
+    assert result["age_tracer"]["use_age_tracer"] is True
+    assert result["age_tracer"]["age_start_year"] == 1990
