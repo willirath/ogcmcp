@@ -48,10 +48,12 @@ CATALOGUE: list[dict] = [
             "('binary' or 'netcdf'). Changing MPI rank count requires re-partitioning. "
             "In the project's Docker runtime image the partitioner binary is available at "
             "/fesom2/bin/fesom_meshpart (serial, no mpirun needed). "
-            "Run it from a work directory that contains namelist.config with n_levels and "
-            "n_part set to the desired partition count: "
-            "n_levels=1, n_part=<N_RANKS> — then /fesom2/bin/fesom_meshpart reads "
-            "MeshPath from namelist.config and writes dist_<N>/ into that mesh directory."
+            "Run it from a work directory containing namelist.config. "
+            "Set the &machine group: n_levels=1 (single-level flat partition, correct for "
+            "almost all use cases; higher values add METIS hierarchy, rarely needed), "
+            "n_part=<N_RANKS>. Set MeshPath in the &paths group to point at the mesh "
+            "directory. fesom_meshpart reads MeshPath from namelist.config (&paths group, "
+            "same key used by fesom.x) and writes dist_<N>/ into that mesh directory."
         ),
     },
     {
