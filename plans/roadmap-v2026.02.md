@@ -481,8 +481,12 @@ ChromaDB collection. Empty result implies `mitgcm-embed-verification`
 was not run before the `mitgcm-mcp` image was built. The step is listed
 in `docs/release.md` prerequisites but was skipped.
 
-- [x] Re-run `pixi run mitgcm-embed-verification` before image rebuild
-  (909 chunks confirmed)
+- [x] Root cause: `list_verification_experiments` read `MITgcm/verification/`
+  live; that directory is not in the MCP image. Fixed by saving catalogue to
+  `data/mitgcm/verification_catalogue.json` in the embed pipeline; tools.py
+  loads from JSON when present.
+- [x] Re-run `pixi run mitgcm-embed-verification` (909 chunks + 65 experiment
+  records in catalogue JSON confirmed)
 - [x] Rebuild and push `mitgcm-mcp-v2026.02.6`
 - [ ] Re-run A6 smoke test
 
@@ -509,6 +513,16 @@ Also stale: `pixi run serve` in `docs/mcp-server.md`,
 - [x] Fix stale `pixi run serve` → `pixi run mitgcm-serve` / `fesom2-serve`
   in `docs/mcp-server.md`
 - [x] Fix stale `pixi run index` → `pixi run mitgcm-index` in `CLAUDE.md`
+
+### 10.6 Spec fix: B3 used filename as module name
+
+`find_modules_tool("oce_fer_gm")` always returns empty — `oce_fer_gm` is a
+filename, not a MODULE name. The file defines `module fer_solve_interface`.
+FESOM2 module names don't follow file-name conventions. Use
+`find_subroutines_tool` + `get_source_tool` to navigate GM/Redi code.
+
+- [x] Update B3 pass criterion: use `find_subroutines_tool("init_Redi_GM")`
+  and `get_source_tool` for USE dependency list
 
 ---
 
