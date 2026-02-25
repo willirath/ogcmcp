@@ -458,7 +458,7 @@ non-existent paths, silently returning `[]`.
 
 - [x] Add `COPY FESOM2/config/ /app/FESOM2/config/` and
   `COPY FESOM2/setups/ /app/FESOM2/setups/` to `docker/fesom2-mcp/Dockerfile`
-- [ ] Rebuild and push `fesom2-mcp-v2026.02.6`
+- [x] Rebuild and push `fesom2-mcp-v2026.02.6`
 - [ ] Re-run B5 smoke test
 
 ### 10.2 DEF-4: `find_modules_tool` returns empty (build procedure)
@@ -470,9 +470,9 @@ has 182 modules and 938 subroutines.
 
 - [x] Add `fesom2-index` to `docker/fesom2-mcp/Dockerfile` comment
   (was only listing embed tasks)
-- [ ] Re-run `pixi run fesom2-index` before image rebuild and confirm
-  `modules` count > 0
-- [ ] Rebuild and push `fesom2-mcp-v2026.02.6`
+- [x] Re-run `pixi run fesom2-index` before image rebuild and confirm
+  `modules` count > 0 (182 modules confirmed)
+- [x] Rebuild and push `fesom2-mcp-v2026.02.6`
 
 ### 10.3 DEF-1: `list_verification_experiments_tool` returns empty (build procedure)
 
@@ -481,8 +481,9 @@ ChromaDB collection. Empty result implies `mitgcm-embed-verification`
 was not run before the `mitgcm-mcp` image was built. The step is listed
 in `docs/release.md` prerequisites but was skipped.
 
-- [ ] Re-run `pixi run mitgcm-embed-verification` before image rebuild
-- [ ] Rebuild and push `mitgcm-mcp-v2026.02.6`
+- [x] Re-run `pixi run mitgcm-embed-verification` before image rebuild
+  (909 chunks confirmed)
+- [x] Rebuild and push `mitgcm-mcp-v2026.02.6`
 - [ ] Re-run A6 smoke test
 
 ### 10.4 Spec fix: B2 used wrong parameter name
