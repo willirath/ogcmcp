@@ -16,12 +16,13 @@ Requires Docker and Claude Code or Codex CLI.
 **Claude Code:**
 ```bash
 claude mcp add --transport stdio --scope user mitgcm -- \
-  docker run --rm -i ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.5
+  docker run --rm -i ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.6
 ```
 
 **Codex CLI:**
 ```bash
-codex mcp add mitgcm -- docker run --rm -i ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.5
+codex mcp add mitgcm -- \
+  docker run --rm -i ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.6
 ```
 
 ### FESOM2 MCP server
@@ -34,7 +35,8 @@ claude mcp add --transport stdio --scope user fesom2 -- \
 
 **Codex CLI:**
 ```bash
-codex mcp add fesom2 -- docker run --rm -i ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.02.6
+codex mcp add fesom2 -- \
+  docker run --rm -i ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.02.6
 ```
 
 Docker pulls the image on first use (~600 MB per image — includes Ollama,

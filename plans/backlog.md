@@ -8,85 +8,19 @@ Known limitations and deferred improvements, in no particular priority order.
 
 - **Namelist read/write tool**: Robust Python namelist parsers for MITgcm exist (e.g. `f90nml`) and have been used with MITgcm before. Wrap one as a tool: read a namelist string → structured dict, and write dict → properly-formatted Fortran namelist. Would catch silent formatting errors agents currently make.
 
-- **Namelist structure map**: Agents and new users don't know what lives where. Add a `get_namelist_structure_tool` (or gotcha entry) with a two-level map: (1) file → group (e.g. `input/data` contains PARM01–05, `input/eedata` contains EEPARMS, each package gets `input/data.<pkgname>`); (2) group → domain for the opaque numbered groups (PARM01 = basic numerics, PARM02 = elliptic solvers, PARM03 = time stepping, PARM04 = grid, PARM05 = I/O; EEPARMS = parallel tile layout). Package-specific groups can defer to `get_package_flags_tool` and `search_docs_tool`. Also cover the `data.pkg` dependency: packages must be enabled there before their `data.<pkg>` file has any effect.
-
 - **Expose all MITgcm files via tools**: In every test session so far, agents eventually bypassed the MCP tools and parsed MITgcm sources directly from the Docker image because key files (SIZE.h, CPP_OPTIONS.h, COMMON block headers) are not in the index. The code graph only covers subroutine-containing `.F` files. Fix: extend indexer to cover `.h` files.
-
-- **Verification experiment index**: 68 experiments under `MITgcm/verification/`, consistent structure (`input/data*`, `input/eedata`, `code/*.h`, `code/packages.conf`). Typical `input/data` is ~70 LOC — small enough to embed whole. A searchable index of verification namelist files would let agents answer "how does tutorial_rotating_tank configure PARM01?" directly. Likely bigger scope than the `.h` header work above — assess separately.
-
-- **Docker arch strategy — be explicit**: Docker workflow has caused struggles in N=2 sessions (100%). Root cause identified from session logs (see `plans/test-sessions/`). Concrete bugs in the `suggest_experiment_config_tool` Dockerfile template — see "Dockerfile template fixes" entry below.
 
 - **Agent smoke-test / incremental validation workflow**: How should agents incrementally validate an experiment while designing it? Need a suggested strategy: e.g. start with minimal domain, check model starts, then scale up. Goes in `get_workflow_tool` or a dedicated gotcha entry. Distinct from release smoke tests.
 
-- **Tutorial-first workflow**: Drop the idea of a canned call-graph overview. Instead, extend `get_workflow_tool` with a `design_experiment` workflow that starts from "find the closest verification experiment to your goal, study its namelist choices, then diverge." Pairs naturally with the verification experiment index above — together they make the starting point much more grounded.
+- **Tutorial-first workflow**: Extend `get_workflow_tool` with a `design_experiment` workflow that starts from "find the closest verification experiment to your goal, study its namelist choices, then diverge." Pairs naturally with the verification experiment index already in place.
 
 ---
 
-## Dockerfile template fixes (suggest_experiment_config_tool)
+## Search quality fixes
 
-**Where**: `src/domain/suggest.py`, `_DOCKERFILE_TEMPLATE` and `_QUICKSTART`
+**Where**: `src/mitgcm/server.py`, `src/mitgcm/domain/gotcha.py`
 
-**Source**: Both test sessions (2026-02-23). Every user hits at least two of these on first attempt.
-
-**Bugs**, in order of encounter:
-
-1. **`dpkg-architecture` not in runtime image** — Build fails immediately with `command not found`.
-   Fix: switch to `uname -m` (returns `x86_64` / `aarch64`), update `case` branches accordingly.
-
-2. **`--allow-run-as-root` is OpenMPI syntax** — Run fails immediately; image uses MPICH (hydra),
-   which does not recognise this flag. Fix: remove the flag entirely.
-
-3. **`-mpi` flag missing from `genmake2` call** — Without `-mpi`, genmake2 expands a different
-   `comm_stats` template where the `SIZE.h → EXCH.h` PARAMETER chain is broken, causing
-   `L_WBUFFER` compile errors even for NP=1 runs. Fix: always include `-mpi`.
-
-4. **`mpif77` wrapper breaks `fcVers` detection** — The arm64 optfile conditionally adds
-   `-fallow-argument-mismatch` based on gfortran version, detected by parsing `$FC --version`.
-   When `FC=mpif77`, the wrapper does not emit a parseable version string → `fcVers=0` → flag
-   omitted → gfortran 12 strict type-checking causes MPI argument mismatch compile errors.
-   Fix: inject `-fallow-argument-mismatch` via a `genmake_local` file before calling `genmake2`,
-   or document the workaround prominently in the template comments.
-
----
-
-## Gotcha additions from test sessions
-
-**Where**: `src/domain/gotcha.py`
-
-**Source**: `plans/test-sessions/2026-02-23-claude-lake-triangle.md` §4–5
-
-### Critical (silent wrong results)
-
-- **`readBinaryPrec` mismatch**: Python/NumPy writes 64-bit floats by default; MITgcm reads
-  binary input as 32-bit by default (`readBinaryPrec=32`). The mismatch causes silently wrong
-  results — model runs to `STOP NORMAL END` with no warning. Symptoms: `n3dWetPts == n2dWetPts`
-  (only surface layer wet), `theta_mean = tRef(1)`, no circulation.
-  Diagnostic: compare expected wet-cell count from `gendata.py` against `n2dWetPts` in
-  `STDOUT.0000`. Fix: add `readBinaryPrec = 64` to `&PARM01`, or write files with `dtype='>f4'`.
-
-### High (runtime aborts requiring full rebuild)
-
-- **`INCLUDE_PHIHYD_CALCULATION_CODE` required**: Hydrostatic runs require
-  `#define INCLUDE_PHIHYD_CALCULATION_CODE` in `CPP_OPTIONS.h`. Without it, `CONFIG_CHECK`
-  aborts with "missing code to calculate pressure (totPhiHyd)". Not included by default.
-
-- **`gfd` required in `packages.conf`**: Standard ocean/lake runs need the `gfd` package group
-  (`mom_fluxform`, `mom_common`, `mom_vecinv`, `generic_advdiff`, `debug`, `mdsio`, `rw`,
-  `monitor`). Listing only `mom_fluxform` is insufficient. `PACKAGES_CHECK` aborts at runtime.
-  Rebuild required after fixing.
-
-### Medium (compile errors)
-
-- **`SIZE.h` must include `MAX_OLX`/`MAX_OLY` PARAMETER block**: Custom `SIZE.h` overrides
-  must reproduce the `MAX_OLX`, `MAX_OLY` PARAMETER declarations at the bottom of the standard
-  file. `EXCH.h` depends on these via `MAX_OLX_EXCH = MAX_OLX`. Without them, `L_WBUFFER` is
-  not a PARAMETER and cannot be used as an array dimension. Verification: compare against
-  `tutorial_barotropic_gyre/code/SIZE.h`.
-
-- **`-mpi` required even for NP=1**: See Dockerfile template fixes §3 above. Also applies
-  when users write their own `genmake2` invocation.
-
-### Search quality fixes
+**Source**: test session 2026-02-23
 
 - **`lookup_gotcha_tool` deduplication**: The "rigid lid vs free surface" entry was returned for
   three different queries in one session. Add deduplication or result diversity logic so the same
@@ -102,58 +36,9 @@ Known limitations and deferred improvements, in no particular priority order.
 
 ---
 
-## Verification experiment namelist index
-
-**Where**: new `src/verification_indexer/` module, new ChromaDB collection
-
-**Source**: both test sessions; agents went to `docker run ... cat` when this was missing.
-
-**Problem**: `input/data`, `input/eedata`, `input/data.pkg`, and `input/data.*` files from
-MITgcm's 68 verification experiments are not indexed. These are the canonical reference for
-how MITgcm is actually configured — far more grounding than abstract documentation. Agents
-that cannot find them via MCP tools resort to reading files directly from the Docker image.
-
-**Scope**: 68 experiments × ~4 namelist files each ≈ ~270 files, typical size 4–70 LOC.
-Small enough to embed whole. `code/*.h` files from verification experiments are already
-partially indexed (via the docs ChromaDB); this extends that coverage to the `input/` side.
-
-**Pairs with**: tutorial-first workflow (Inbox). Together they make "find the closest
-verification experiment, study its choices, diverge" a real tool-supported workflow.
-
----
-
-## Codex CLI support
-
-**Where**: `docker/mcp/entrypoint.sh`, `README.md`, `docs/mcp-server.md`
-
-**Status**: Fixed in v2026.02.4.
-
-**Root cause**: `ollama serve &` in the entrypoint inherited the container's
-stdout, which is the MCP stdio pipe. Any bytes Ollama wrote to stdout before
-Python took over corrupted the JSON-RPC framing. Codex CLI is stricter than
-Claude Code about non-JSON on the pipe. Fix is one line:
-
-```bash
-ollama serve >/dev/null 2>&1 &
-```
-
-Cold-start latency is 0.73 s — well under Codex's 10-second default timeout,
-so no `startup_timeout_sec` tuning is needed.
-
-**Install** (once merged and pushed as `mitgcm-mcp-v2026.02.4`):
-
-```bash
-codex mcp add mitgcm -- docker run --rm -i ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.4
-```
-
-**Remaining**: add `codex mcp add` install line to README and `docs/mcp-server.md`
-after the merge.
-
----
-
 ## Gotcha catalogue: expose as JSON
 
-**Where**: `src/domain/gotcha.py`
+**Where**: `src/mitgcm/domain/gotcha.py`
 
 **Problem**: The catalogue is a Python list-of-dicts, useful for `lookup_gotcha`
 but awkward to query from outside Python (e.g. from the MCP server, a web UI,
@@ -213,7 +98,7 @@ time series of domain-mean temperature. Output goes to `experiments/<name>/fig/`
 
 ## CPP guard attribution is per-subroutine, not per-line
 
-**Where**: `src/indexer/extract.py`, `cpp_guards` table
+**Where**: `src/mitgcm/indexer/extract.py`, `cpp_guards` table
 
 **Problem**: The extractor attributes every `#ifdef` / `#ifndef` found anywhere
 in a subroutine to the subroutine as a whole. For large routines like
@@ -236,7 +121,7 @@ maintain a CPP nesting stack across lines.
 
 ## Embedding pipeline: GPU Ollama for larger context and faster indexing
 
-**Where**: `src/embedder/pipeline.py`, `compose.yml`
+**Where**: `src/mitgcm/embedder/pipeline.py`, `compose.yml`
 
 **Problem**: The CPU Docker Ollama container has an effective context window
 that is too small for some dense free-form Fortran chunks (~4000 chars).
