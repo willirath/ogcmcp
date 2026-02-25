@@ -181,8 +181,10 @@ docker compose up -d
 docker compose exec ollama ollama pull nomic-embed-text   # first time only
 
 # Build the MITgcm indices
-pixi run mitgcm-index    # Fortran → DuckDB (~2 min)
-pixi run mitgcm-embed    # subroutines → ChromaDB (~45 min)
+pixi run mitgcm-index                # Fortran → DuckDB (~2 min)
+pixi run mitgcm-embed                # subroutines → ChromaDB (~45 min)
+pixi run mitgcm-embed-docs           # RST docs → ChromaDB
+pixi run mitgcm-embed-verification   # verification experiments → ChromaDB + catalogue JSON
 
 # Build the FESOM2 indices
 pixi run fesom2-index
@@ -196,6 +198,18 @@ pixi run test
 # Start servers (Claude Code launches automatically via .mcp.json)
 pixi run mitgcm-serve
 pixi run fesom2-serve
+
+# Build Docker images (run all index/embed steps first)
+pixi run build-mitgcm-runtime-image
+pixi run build-mitgcm-mcp-image
+pixi run build-fesom2-runtime-image
+pixi run build-fesom2-mcp-image
+
+# Run bundled experiments
+pixi run run-fesom2-toy-neverworld2   # FESOM2 neverworld2 toy run
+pixi run plot-fesom2-toy-neverworld2  # plot results
+pixi run run-rotating-convection      # MITgcm rotating convection
+pixi run run-tutorial                 # MITgcm rotating tank tutorial
 ```
 
 ---
