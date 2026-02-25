@@ -44,8 +44,9 @@ Indices live in separate namespaces under `data/`:
 
 ```
 data/
-├── index.duckdb       MITgcm code graph
-├── chroma/            MITgcm embeddings
+├── mitgcm/
+│   ├── index.duckdb   MITgcm code graph
+│   └── chroma/        MITgcm embeddings
 └── fesom2/
     ├── index.duckdb   FESOM2 code graph
     └── chroma/        FESOM2 embeddings

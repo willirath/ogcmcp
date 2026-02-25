@@ -3,8 +3,9 @@
 ## Model
 
 `nomic-embed-text` — a 768-dimensional general-purpose embedding model from
-Nomic AI, served via ollama. Used to embed MITgcm subroutine source text so
-that natural-language queries can retrieve relevant code.
+Nomic AI, served via Ollama. Used by **both** the MITgcm and FESOM2 backends
+to embed source text, documentation, and namelist descriptions so that
+natural-language queries can retrieve relevant code and configuration.
 
 ## Infrastructure
 
@@ -42,7 +43,7 @@ Run before embedding, pointing at the shared model store:
 docker compose down
 
 OLLAMA_MODELS="$(pwd)/ollama_data/models" ~/.local/bin/ollama serve &
-pixi run embed              # or embed-docs, embed-verification
+pixi run mitgcm-embed       # or mitgcm-embed-docs, fesom2-embed, fesom2-embed-namelists, …
 ```
 
 The `ollama_data/` directory is shared between Docker and native Ollama,

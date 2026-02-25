@@ -7,7 +7,13 @@ How to build, publish, and verify a new `ghcr.io/willirath/ogcmcp` release.
 
 ## Prerequisites
 
-- `data/` populated — run `pixi run index`, `pixi run embed`, `pixi run embed-docs` if needed
+- `data/mitgcm/` populated — run if needed:
+  ```bash
+  pixi run mitgcm-index
+  pixi run mitgcm-embed
+  pixi run mitgcm-embed-docs
+  pixi run mitgcm-embed-verification
+  ```
 - Docker Desktop running
 - `gh` CLI authenticated (`gh auth status`)
 - GHCR credentials: `echo $GITHUB_TOKEN | docker login ghcr.io -u willirath --password-stdin`

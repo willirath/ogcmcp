@@ -9,7 +9,7 @@ data; `schema` is used by `pipeline` to set up and connect to the database.
 
 ### `schema.py` — database setup
 
-Defines `DB_PATH` (`data/index.duckdb`) and `DDL` (a multi-statement string
+Defines `DB_PATH` (`data/mitgcm/index.duckdb`) and `DDL` (a multi-statement string
 that creates all tables with `CREATE TABLE IF NOT EXISTS`). Exposes a single
 function:
 
@@ -114,7 +114,7 @@ MITgcm/.F and .F90 files
    pipeline.run()         iterates files, calls extract_file
         |
         v
-  schema.connect()        opens / creates data/index.duckdb
+  schema.connect()        opens / creates data/mitgcm/index.duckdb
         |
         v
   INSERT statements       subroutines, calls, namelist_refs,
@@ -124,17 +124,28 @@ MITgcm/.F and .F90 files
 ## Running the indexer
 
 ```sh
-pixi run index
+pixi run mitgcm-index
 ```
 
-This invokes `python -m src.indexer.pipeline`. The MITgcm source tree must
-exist at `MITgcm/` relative to the project root (it is a git submodule).
-Output is written to `data/index.duckdb`. To rebuild from scratch:
+The MITgcm source tree must exist at `MITgcm/` (it is a git submodule;
+run `git submodule update --init MITgcm` on first checkout).
+Output is written to `data/mitgcm/index.duckdb`. To rebuild from scratch:
 
 ```sh
-rm -f data/index.duckdb
-pixi run index
+rm -f data/mitgcm/index.duckdb
+pixi run mitgcm-index
 ```
+
+**Data inputs** — directories walked by the pipeline:
+
+| Directory | Contents |
+|---|---|
+| `MITgcm/model/src/` | Core dynamical kernel |
+| `MITgcm/pkg/` | Optional packages (diagnostics, obcs, kpp, …) |
+| `MITgcm/eesupp/src/` | Execution environment (threading, I/O) |
+
+`MITgcm/verification/` is used by the verification embedder
+(`pixi run mitgcm-embed-verification`) but not by the indexer.
 
 ## Extending the indexer
 
