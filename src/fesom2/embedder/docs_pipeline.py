@@ -4,6 +4,7 @@ Run as:
     pixi run fesom2-embed-docs
 """
 
+import itertools
 import logging
 from pathlib import Path
 
@@ -63,7 +64,6 @@ def _iter_extra_files(fesom2_root: Path) -> list[dict]:
         fesom2_root.glob("src/*.h"),
         fesom2_root.glob("src/*.inc"),
     ]
-    import itertools
     for path in sorted(itertools.chain(*globs)):
         try:
             text = path.read_text(encoding="utf-8", errors="replace").strip()
