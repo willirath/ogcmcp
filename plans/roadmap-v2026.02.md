@@ -535,29 +535,21 @@ Done when: all items below checked, images rebuilt and smoke-tested.
 
 ### 11.1 MITgcm: index core model headers
 
-`model/inc/*.h` (PARAMS.h, DYNVARS.h, GRID.h, EOS.h, FFIELDS.h, …) and
-`eesupp/inc/*.h` are embedded for semantic search but absent from the DuckDB
-code graph. Agents cannot ask "what variables does DYNVARS.h declare?"
-
-- [ ] Extend indexer to parse `.h` files in `model/inc/` and `eesupp/inc/`
-      and store variable/parameter declarations in DuckDB
-- [ ] Add tool or extend `get_source_tool` to retrieve header content
+**FALSE ALARM** — `model/inc/*.h` and `eesupp/inc/*.h` are already indexed in
+the `mitgcm_docs` ChromaDB collection via the existing globs in `iter_headers`.
+No action needed.
 
 ### 11.2 MITgcm: index package data headers
 
 `pkg/*/` contains non-OPTIONS headers (e.g. `SEAICE.h`, `EXF.h`) that define
-package-level common blocks and parameters. Currently unindexed.
+package-level common blocks and parameters. Previously unindexed.
 
-- [ ] Extend embedder/indexer to cover `pkg/*/*.h` beyond `*_OPTIONS.h`
+- [x] Extend embedder to cover `pkg/*/*.h` (PR #9, merged 2026-02-25)
 
 ### 11.3 MITgcm: index additional verification namelists
 
-`verification/*/input/data.diagnostics`, `data.pkg`, `data.mnc`, `data.rbcs`
-are not indexed — only `data*` matching the main namelist and `eedata` are.
-Agents cannot search diagnostics configuration examples.
-
-- [ ] Extend `verification_indexer/pipeline.py` to include all text files
-      in `input/` (already done for `code/`; remove the filename filter on `input/`)
+**FALSE ALARM** — `data.diagnostics`, `data.pkg`, etc. are already indexed by
+the verification indexer. No action needed.
 
 ### 11.4 FESOM2: index forcings.yml and add get_forcing_spec_tool
 
@@ -565,24 +557,46 @@ Agents cannot search diagnostics configuration examples.
 patterns, and variable names for CORE2, JRA55, ERA5, NCEP, NCEP2. Not indexed.
 Agents know a setup uses "CORE2" but cannot query what files or variables it needs.
 
-- [ ] Parse `forcings.yml` into DuckDB or expose as static catalogue
-- [ ] Add `get_forcing_spec_tool(dataset)` returning coefficients, file
-      prefixes, variable names, calendar parameters
+- [x] Add `src/fesom2/domain/forcing.py` with `list_forcing_datasets()` and
+      `get_forcing_spec()` backed by `forcings.yml` (PR #9, merged 2026-02-25)
+- [x] Expose as `list_forcing_datasets_tool` and `get_forcing_spec_tool` in MCP server
+- [x] Export from `src/fesom2/domain/__init__.py`
 
 ### 11.5 FESOM2: embed visualization tool READMEs
 
 `FESOM2/visualization/` contains pyfesom2, view, tripyview, spheRlab — agents
 have no way to discover what post-processing tools exist or which to use.
 
-- [ ] Add `FESOM2/visualization/*/README*` to the FESOM2 docs embedding pipeline
-- [ ] Add gotcha or workflow note guiding agents to available tools
+- [x] Add `visualization/README*` and `visualization/*/README*` to the FESOM2
+      docs embedding pipeline via `_iter_extra_files()` (PR #9, merged 2026-02-25)
 
 ### 11.6 FESOM2: index src header and include files
 
 `FESOM2/src/*.h` and `*.inc` (mesh association macros, gather templates) are
 not indexed. Currently only `.F90` subroutines are covered.
 
-- [ ] Extend FESOM2 embedder to include `.h` and `.inc` files in `src/`
+- [x] Extend FESOM2 embedder to include `.h` and `.inc` files in `src/`
+      via `_iter_extra_files()` (PR #9, merged 2026-02-25)
+
+### 11.7 FESOM2: mesh partitioner missing from Docker runtime image (issue #8)
+
+`fesom_ini.x` / `fesom_meshpart` not compiled in the Docker runtime image.
+Agents attempting to partition a new mesh found no binary.
+
+- [x] Add `-DBUILD_MESHPARTITIONER=ON` to Dockerfile build step (PR #10, merged 2026-02-25)
+- [x] Update METIS gotcha to document binary path, namelist keys, and n_levels semantics
+
+---
+
+## Release checklist — v2026.02.7
+
+- [x] All tier 11 items done (11.1/11.3 false alarms; 11.2/11.4/11.5/11.6/11.7 implemented)
+- [x] `pixi run test` passes (548 tests on main after both PRs merged)
+- [ ] All embed/index steps run with updated pipelines; data baked into images
+- [ ] Images built and pushed (`fesom2-mcp-v2026.02.7`, `fesom2-runtime-v2026.02.7`; mitgcm images unchanged)
+- [ ] Smoke test: confirm `/fesom2/bin/fesom_meshpart` exists in runtime image
+- [ ] Git tag `v2026.02.7` pushed
+- [ ] GitHub release created
 
 ---
 
