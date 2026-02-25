@@ -44,38 +44,42 @@ the embedding model, and pre-built indices).
 
 ---
 
-## Example — MITgcm
+## Example — cross-model comparison
 
 ```
-User: How does MITgcm handle MPI processes?
+User: How does GM eddy parameterisation differ between MITgcm and FESOM2?
 
-→ search_docs_tool("MPI parallel processing decomposition")
-  ["Machine model parallelism", "Tiles", ...]
+→ search_code_tool("GM bolus skew flux Ferrari")   [both servers, parallel]
+→ get_package_tool("gmredi")                       [MITgcm]
+→ get_source_tool("fer_gamma2vel", module="oce_fer_gm")  [FESOM2]
+→ namelist_to_code_tool("k_gm_max")                [FESOM2]
+→ list_setups_tool(name="neverworld2")             [FESOM2]
 
-→ find_subroutines_tool("INI_PROCS")
-  [{"name": "INI_PROCS", "file": "eesupp/src/ini_procs.F", ...}]
-
-→ get_source_tool("EEBOOT_MINIMAL", limit=80)
-  [MPI_Init → MPI_Cart_create with nPx × nPy topology ...]
-
-Claude: The decomposition is compile-time: SIZE.h sets nPx, nPy, nSx, nSy.
-        The number of MPI ranks must equal nPx × nPy.
+MITgcm defaults to the Griffies (1998) skew-flux form; FESOM2 always uses
+bolus advection via a Ferrari (2010) BVP streamfunction. MITgcm offers six
+κ_GM schemes (constant, Visbeck, Bates K3D, GEOMETRIC …); FESOM2 has one,
+but with resolution-adaptive scaling that ramps GM off where the mesh
+locally resolves eddies — a feature unique to unstructured grids.
 ```
 
-## Example — FESOM2
+Full analysis: [`examples/gm-parameterisation-mitgcm-vs-fesom2.md`](examples/gm-parameterisation-mitgcm-vs-fesom2.md)
+
+## Example — single-model lookup
 
 ```
-User: What controls GM diffusivity in FESOM2?
+User: How does FESOM2 handle wind stress relative to ocean surface currents?
 
-→ namelist_to_code_tool("K_GM")
-  [{"name": "oce_mixing", "namelist_group": "oce_mixing", "file": "...", ...}]
+→ search_docs_tool("wind stress bulk formulae Swind")  [FESOM2]
+→ get_source_tool("ncar_ocean_fluxes_mode")            [FESOM2]
+→ get_source_tool("BULKF_FORMULA_LANL")                [MITgcm]
 
-→ get_source_tool("oce_mixing")
-  [K_GM declared in &oce_mixing, used in GM parameterisation routines ...]
-
-Claude: K_GM in namelist.oce controls the Gent-McWilliams isopycnal
-        diffusivity. Default is 1000 m²/s; typical tuning range 500–2000.
+FESOM2 subtracts the model's surface velocity before computing stress
+(relative winds by default, tunable via Swind following Renault et al. 2019).
+MITgcm's default bulk forcing uses absolute winds; to match FESOM2's behaviour
+you must use CHEAPAML or supply pre-processed relative-wind forcing.
 ```
+
+Full analysis: [`examples/wind-stress-mitgcm-vs-fesom2.md`](examples/wind-stress-mitgcm-vs-fesom2.md)
 
 ---
 
@@ -217,6 +221,7 @@ pixi run fesom2-serve
 │   ├── fesom2/        FESOM2 runtime image
 │   └── fesom2-mcp/    FESOM2 MCP image
 ├── docs/              Implementation notes and design rationale
+├── examples/          Agent-generated cross-model analyses using the MCP servers
 ├── plans/             Design docs and release roadmap
 ├── MITgcm/            MITgcm source (git submodule, pinned @ decd05a — checkpoint69k)
 ├── FESOM2/            FESOM2 source (git submodule, pinned @ 1b58e7f)
