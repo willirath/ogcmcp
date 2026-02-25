@@ -457,15 +457,22 @@ def get_verification_source(
     }
 
 
+_CATALOGUE_PATH = Path("data/mitgcm/verification_catalogue.json")
+
+
 def list_verification_experiments() -> list[dict]:
     """Return structured catalogue of all MITgcm verification/tutorial experiments.
 
-    All fields are derived automatically from experiment files.  No Ollama or
-    ChromaDB required — reads directly from MITgcm/verification/.
+    Loads from the pre-built JSON catalogue at data/mitgcm/verification_catalogue.json
+    (written by pixi run mitgcm-embed-verification). Falls back to building live
+    from MITgcm/verification/ when the JSON is absent (development environments).
 
     Each entry has: name, tutorial, packages, domain_class, Nx, Ny, Nr,
     grid_type, nonhydrostatic, free_surface, eos_type.
     """
+    import json
+    if _CATALOGUE_PATH.exists():
+        return json.loads(_CATALOGUE_PATH.read_text())
     from src.mitgcm.verification_indexer.catalogue import build_catalogue
     return build_catalogue()
 

@@ -5,6 +5,7 @@ experiments under MITgcm/verification/ into the mitgcm_verification ChromaDB
 collection.
 """
 
+import json
 import logging
 import time
 from pathlib import Path
@@ -22,6 +23,9 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 from src.embed_utils import BATCH_SIZE, EMBED_MODEL, MAX_CHARS, OVERLAP, _chunk_text
 from src.mitgcm.embedder.store import CHROMA_PATH, get_verification_collection
+from src.mitgcm.verification_indexer.catalogue import build_catalogue
+
+CATALOGUE_PATH = Path("data/mitgcm/verification_catalogue.json")
 
 MITGCM = Path("MITgcm")
 EXPERIMENT_DIRS = [MITGCM / "verification"]
@@ -148,6 +152,13 @@ def run(chroma_path: Path = CHROMA_PATH) -> None:
             log.info(f"  Embedded {done}/{total}")
 
     log.info(f"Done. {collection.count()} chunks in mitgcm_verification collection.")
+
+    # Save pre-built catalogue so list_verification_experiments_tool works
+    # in the MCP image (which does not contain MITgcm/verification/).
+    catalogue = build_catalogue()
+    CATALOGUE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    CATALOGUE_PATH.write_text(json.dumps(catalogue, indent=2))
+    log.info(f"Saved {len(catalogue)} experiment records to {CATALOGUE_PATH}")
 
 
 if __name__ == "__main__":

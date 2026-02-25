@@ -177,9 +177,12 @@ Both servers start automatically when a tool is first called.
 > Find the FESOM2 module that handles GM/Redi eddy parameterisation and show what other modules it depends on.
 
 **Pass criteria:**
-- `find_modules_tool` or `search_code_tool` finds a relevant module
-  (e.g. `oce_fer_gm` or similar)
-- `get_module_uses_tool` returns a list of dependent modules
+- `find_subroutines_tool("init_Redi_GM")` or `search_code_tool` locates the
+  relevant subroutine (note: FESOM2 module names do not always match file names —
+  `find_modules_tool("oce_fer_gm")` returns empty because the file defines module
+  `fer_solve_interface`, not `oce_fer_gm`; use subroutine lookup instead)
+- `get_source_tool` shows USE statements listing dependent modules (e.g.
+  `MOD_MESH`, `o_PARAM`, `MOD_PARTIT`)
 
 ---
 
