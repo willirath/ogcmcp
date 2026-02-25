@@ -344,6 +344,33 @@ CATALOGUE: list[dict] = [
             "omit that flag entirely."
         ),
     },
+    {
+        "title": "Closed basin leaks volume if boundary rows are ocean cells",
+        "keywords": [
+            "closed basin", "volume conservation", "ssh drift", "bathymetry",
+            "open boundary", "land mask", "halo", "free surface", "land wall",
+            "bathy", "perimeter",
+        ],
+        "summary": (
+            "In a closed-basin configuration, all four boundary rows/columns of the "
+            "bathymetry file must be set to 0 (land) or fluid leaks into halo ghost "
+            "cells, causing steady SSH drift (~cm/day)."
+        ),
+        "detail": (
+            "MITgcm enforces no-normal-flow at a boundary face only when the adjacent "
+            "cell has hFacC = 0 (land). If the northernmost or southernmost row (or "
+            "east/west column) in bathy.bin is ocean (depth < 0), there is no land cell "
+            "to anchor the no-flux condition on that face. The halo exchange then allows "
+            "a non-zero normal velocity component into the ghost region, creating a "
+            "spurious volume source or sink. The symptom is a monotonic, spatially uniform "
+            "drift in area-weighted mean SSH that is absent with zero forcing and grows "
+            "linearly with wind stress amplitude. The fix is to ensure all four perimeter "
+            "rows/columns of bathy.bin are set to 0. "
+            "Note: when using OBCS, boundary rows may legitimately be ocean cells — the "
+            "open-boundary machinery provides the correct flux condition. The problem "
+            "arises only when OBCS is absent."
+        ),
+    },
 ]
 
 
