@@ -40,12 +40,18 @@ CATALOGUE: list[dict] = [
         ),
         "detail": (
             "FESOM2 distributes the unstructured mesh across MPI ranks using METIS "
-            "partitioning. The partition files (e.g. nod2d.out.npart, elem2d.out.npart) "
-            "must be generated before the first model run. Run the FESOM2 partitioner "
-            "(or the provided partition script) with the target MPI rank count. "
-            "The number of MPI ranks used at run time must match the partition count. "
+            "partitioning. The partition files live in a dist_N/ subdirectory of the "
+            "mesh directory (where N = number of MPI ranks). They must be generated "
+            "before the first model run with the FESOM2 partitioner binary. "
+            "The number of MPI ranks at run time must match the partition count. "
             "part_format in namelist.config selects the partition file format "
-            "('binary' or 'netcdf'). Changing MPI rank count requires re-partitioning."
+            "('binary' or 'netcdf'). Changing MPI rank count requires re-partitioning. "
+            "In the project's Docker runtime image the partitioner binary is available at "
+            "/fesom2/bin/fesom_meshpart (serial, no mpirun needed). "
+            "Run it from a work directory that contains namelist.config with n_levels and "
+            "n_part set to the desired partition count: "
+            "n_levels=1, n_part=<N_RANKS> — then /fesom2/bin/fesom_meshpart reads "
+            "MeshPath from namelist.config and writes dist_<N>/ into that mesh directory."
         ),
     },
     {

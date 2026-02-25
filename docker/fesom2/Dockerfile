@@ -26,7 +26,7 @@ COPY FESOM2/ /fesom2/
 # Build: configure.sh sources env/ubuntu/shell (sets FC/CC/CXX to mpi wrappers)
 # then calls cmake + make install. Binary lands in /fesom2/bin/fesom.x.
 WORKDIR /fesom2
-RUN bash -l configure.sh ubuntu
+RUN bash -l configure.sh ubuntu -DBUILD_MESHPARTITIONER=ON
 
 # Entrypoint
 COPY docker/fesom2/entrypoint.sh /entrypoint.sh
