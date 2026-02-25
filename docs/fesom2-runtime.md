@@ -1,91 +1,95 @@
 # FESOM2 runtime Docker image
 
 Self-contained Docker image for running FESOM2 toy experiments on a laptop.
-No external data or separate FESOM2 installation required.
-
-## What it includes
-
-- FESOM2 binary compiled from the submodule source (`1b58e7f`)
-- Toy-experiment meshes with pre-computed METIS partitions:
-  - `neverworld2` — 8578 nodes, idealized channel (Neverworld2 configuration)
-  - `soufflet` — 2875 nodes, idealized channel (Soufflet configuration)
-- Toy-experiment namelist configs (from `FESOM2/config/`)
-- All runtime dependencies (OpenMPI, NetCDF-Fortran, gfortran libs)
+Mesh files, namelists, and output each live in their own directory — all
+three are mounted at runtime; nothing is baked into the image.
 
 ## Usage
 
 ```bash
-docker run --rm -v $(pwd)/output:/output \
-  ghcr.io/willirath/ogcmcp:fesom2-v2026.02.1 \
-  [experiment] [nranks] [ndays]
+EXP=/path/to/experiment
+mkdir -p "$EXP/output"
+
+docker run --rm \
+  -v "$EXP/mesh:/mesh:ro" \
+  -v "$EXP/input:/input:ro" \
+  -v "$EXP/output:/output" \
+  fesom2:latest
 ```
 
-| Argument | Default | Valid values |
-|---|---|---|
-| `experiment` | `neverworld2` | `neverworld2`, `soufflet` |
-| `nranks` | `2` | `2`, `8` |
-| `ndays` | `5` | any positive integer |
+All experiment parameters (`run_length`, `step_per_day`, `n_part`,
+`which_toy`, …) are read from the committed `input/` namelists. The
+entrypoint patches only the three container-internal paths and writes
+`fesom.clock`.
 
-`nranks` is constrained to 2 or 8 — only those METIS partition files are
-bundled. Changing `nranks` requires no re-partitioning; pick whatever fits
-your laptop.
+## What the entrypoint does
 
-### Examples
+1. Validates that `/mesh`, `/input`, `/output` are mounted and
+   `/input/namelist.config` exists
+2. Copies `/input/namelist.*` to a temporary work directory
+3. Patches three paths in the copied `namelist.config`:
+   - `MeshPath → '/mesh/'`
+   - `ResultPath → '/output/'`
+   - `ClimateDataPath → '/dev/null/'`
+4. Reads `timenew`, `daynew`, `yearnew` from `&clockinit` and writes
+   `/output/fesom.clock` (two identical lines = cold start)
+5. Reads `n_part` from the patched `namelist.config`
+6. Runs `mpirun --allow-run-as-root -np <n_part> /fesom2/bin/fesom.x`
 
-```bash
-# 5-day neverworld2 run, 2 MPI ranks (default)
-mkdir output
-docker run --rm -v $(pwd)/output:/output fesom2:latest
+## Experiment directory layout
 
-# 1-day neverworld2 run, 8 MPI ranks
-docker run --rm -v $(pwd)/output:/output fesom2:latest neverworld2 8 1
-
-# 3-day soufflet run, 2 MPI ranks
-docker run --rm -v $(pwd)/output:/output fesom2:latest soufflet 2 3
 ```
-
-## Output
-
-Output NetCDF files and the updated `fesom.clock` are written to the
-`/output` directory (your volume mount). The model writes whatever fields
-are listed in `namelist.io` — the default config outputs SST, SSS, SSH,
-MLD, surface stresses, 3-D T/S/u/v/w, and a restart file.
+experiments/fesom2/<name>/
+├── mesh/
+│   ├── nod2d.out          node coordinates
+│   ├── elem2d.out         triangular connectivity
+│   ├── aux3d.out          level depths + bathymetry
+│   ├── windstress.out     toy wind stress (when wind_opt=1)
+│   ├── edges.out          }
+│   ├── edge_tri.out       } derived geometry (pre-computed by fesom_ini.x)
+│   ├── edgenum.out        }
+│   ├── elvls.out          }
+│   ├── nlvls.out          }
+│   ├── dist_2/            METIS partition for 2 ranks
+│   └── create_mesh.py     mesh provenance script
+├── input/
+│   ├── namelist.config    MeshPath/ResultPath/ClimateDataPath left as '' (patched at runtime)
+│   ├── namelist.oce
+│   ├── namelist.tra
+│   ├── namelist.dyn
+│   ├── namelist.cvmix
+│   ├── namelist.ice
+│   ├── namelist.io
+│   └── namelist.forcing
+├── output/                gitignored — created at runtime
+├── run.sh                 docker run command
+└── plot.py                visualisation script
+```
 
 ## Build
 
 ```bash
-# Local single-arch (for testing)
+# Local (for testing on the native platform)
 docker build --platform linux/arm64 -t fesom2:test -f docker/fesom2/Dockerfile .
 
-# Multi-arch via pixi task
+# Multi-arch via pixi task (amd64 + arm64)
 pixi run build-fesom2-image
 ```
 
 Build time: ~50 s (FESOM2 compilation dominates; apt packages are cached
-across rebuilds). The image is ~1.4 GB (gfortran + OpenMPI + NetCDF +
-FESOM2 source + binary + meshes).
-
-## How it works
-
-`entrypoint.sh`:
-
-1. Validates `experiment`, `nranks`, `ndays`
-2. Creates a temp working directory
-3. Copies toy-specific namelists (`namelist.X.toy_<experiment>`) and shared
-   namelists (`namelist.cvmix`, `namelist.ice`, `namelist.io`,
-   `namelist.dyn`, `namelist.forcing`)
-4. Patches `namelist.config`: sets `MeshPath`, `ResultPath`, `run_length`,
-   `n_part`, `which_toy` for the requested experiment/run
-5. Writes `fesom.clock` to `/output/` (cold-start clock file, two identical
-   lines of `time day year` from `&clockinit`)
-6. Runs `mpirun --allow-run-as-root -np <nranks> fesom.x`
+across rebuilds). Image size: ~1.4 GB (gfortran + OpenMPI + NetCDF +
+FESOM2 binary).
 
 ## Notes
 
+- The entrypoint never overrides `run_length`, `step_per_day`, `n_part`,
+  `which_toy`, or any physics parameter. Everything lives in the committed
+  `input/` namelists.
+- `toy_ocean=.true.` bypasses the bulk forcing pipeline. `namelist.forcing`
+  must still exist (FESOM2 opens it unconditionally) but its contents are
+  ignored.
+- For real (NetCDF-forced) experiments add a fourth mount:
+  `-v /path/to/forcing:/forcing:ro` and set forcing paths in
+  `namelist.forcing` to `/forcing/<prefix>`.
 - The image runs as root (required for `--allow-run-as-root` with OpenMPI
-  inside Docker). This is safe for isolated laptop use.
-- `toy_ocean=.true.` bypasses the bulk forcing pipeline entirely — no
-  atmospheric forcing data is needed or read.
-- `fesom.clock` is always overwritten with a fresh cold-start clock on each
-  run. To restart from a previous run, mount the previous output directory
-  and set `restart_length_unit` in `namelist.config`.
+  inside Docker). Safe for isolated laptop use.

@@ -17,6 +17,7 @@ from src.fesom2.tools import (
     search_docs,
 )
 from src.fesom2.domain import (
+    get_run_interface,
     lookup_gotcha,
     suggest_experiment_config,
     get_workflow,
@@ -448,6 +449,26 @@ def lookup_gotcha_tool(topic: str) -> list[dict]:
         Empty list if no match.
     """
     return lookup_gotcha(topic)
+
+
+@mcp.tool()
+def get_run_interface_tool() -> dict:
+    """Return the FESOM2 experiment directory layout and Docker run interface.
+
+    Use this when setting up a new experiment or when an agent needs to know
+    how to run FESOM2 in the self-contained Docker image. Returns the
+    three-layer directory structure (mesh/, input/, output/), the Docker
+    mount interface, what the entrypoint patches vs reads from the namelists,
+    and the gitignore conventions.
+
+    Returns
+    -------
+    dict
+        Keys: ``description``, ``directory_structure``, ``docker_interface``
+        (with ``command_template``, ``mounts``, ``entrypoint_contract``),
+        ``gitignore_convention``, ``notes``.
+    """
+    return get_run_interface()
 
 
 @mcp.tool()

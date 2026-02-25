@@ -1,6 +1,6 @@
 """Tests for src/fesom2/server.py — tool registration and names."""
 
-from src.fesom2.server import mcp, list_setups_tool
+from src.fesom2.server import mcp, list_setups_tool, get_run_interface_tool
 
 EXPECTED_TOOLS = {
     # Code navigation
@@ -22,6 +22,7 @@ EXPECTED_TOOLS = {
     "translate_lab_params_tool",
     "check_scales_tool",
     "lookup_gotcha_tool",
+    "get_run_interface_tool",
     "suggest_experiment_config_tool",
     "get_namelist_structure_tool",
     # Workflow

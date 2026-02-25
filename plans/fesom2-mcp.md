@@ -356,9 +356,9 @@ _Feedback:_
 
 ### Tier 7 — Docker packaging + release
 
-- [ ] `docker/fesom2-mcp/Dockerfile` — Python + Ollama + indices
+- [x] `docker/fesom2-mcp/Dockerfile` — Python + Ollama + indices
 - [ ] Multi-arch buildx push to GHCR
-- [ ] `docs/fesom2-release.md` written
+- [x] `docs/fesom2-release.md` written
 - [ ] Smoke test on clean machine
 - Done when: `docker run --rm -i ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.03.1`
   answers "What controls GM diffusivity?" correctly
