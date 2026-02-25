@@ -50,6 +50,12 @@ def test_metis_found():
     assert len(results) >= 1
 
 
+def test_metis_gotcha_mentions_binary_path():
+    results = lookup_gotcha("METIS partition")
+    metis = next(r for r in results if "METIS" in r["title"])
+    assert "/fesom2/bin/fesom_meshpart" in metis["detail"]
+
+
 def test_node_element_found():
     results = lookup_gotcha("node element")
     assert len(results) >= 1
