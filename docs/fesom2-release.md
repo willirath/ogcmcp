@@ -140,6 +140,13 @@ git push origin ${VERSION}
 
 ---
 
+## Version variable gotcha
+
+See `docs/release.md` — "Version variable gotcha". Use hardcoded version
+strings in `-t` flags and verify registry tags after every push.
+
+---
+
 ## Image inventory
 
 | Image tag prefix | Purpose | Base | Approx. size |

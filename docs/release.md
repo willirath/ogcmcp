@@ -140,6 +140,44 @@ git push origin ${VERSION}
 
 ---
 
+## Version variable gotcha
+
+Shell variable expansion in `-t` flags is fragile when commands run in
+subshells or scripts. `VERSION=v2026.02.6 && docker buildx build -t ...-${VERSION}` has
+produced empty tags (`fesom2-mcp-`, `mitgcm-mcp-`) when the variable was not
+set in the executing shell.
+
+**Always hardcode the version string directly in `-t` flags:**
+
+```bash
+# Good — version string is literal, cannot expand to empty
+docker buildx build \
+  -t ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.6 \
+  -t ghcr.io/willirath/ogcmcp:mitgcm-mcp-latest \
+  ...
+
+# Risky — $VERSION may be empty in a subshell
+VERSION=v2026.02.6
+docker buildx build -t ghcr.io/willirath/ogcmcp:mitgcm-mcp-${VERSION} ...
+```
+
+**After every push, verify tags in the registry before proceeding:**
+
+```bash
+gh api /user/packages/container/ogcmcp/versions --paginate | \
+  python3 -c "
+import json,sys
+for v in json.load(sys.stdin):
+    t = v.get('metadata',{}).get('container',{}).get('tags',[])
+    if t: print(sorted(t))
+"
+```
+
+Expected output: 4 lines, each with exactly `['{backend}-{type}-latest', '{backend}-{type}-vYYYY.MM.MICRO']`.
+If any tag ends with `-` (empty version) or `latest` points to the wrong digest, delete the bad version in GitHub and retag with `docker buildx imagetools create`.
+
+---
+
 ## GitHub Actions (future)
 
 A `build-and-push.yml` workflow triggered on `push --tags 'v*'` will
