@@ -64,10 +64,10 @@ locally resolves eddies — a feature unique to unstructured grids.
 
 Full analysis: [`examples/gm-parameterisation-mitgcm-vs-fesom2.md`](examples/gm-parameterisation-mitgcm-vs-fesom2.md)
 
-## Example — single-model lookup
+## Example — cross-model comparison (wind stress)
 
 ```
-User: How does FESOM2 handle wind stress relative to ocean surface currents?
+User: How does wind-stress parameterisation differ between MITgcm and FESOM2?
 
 → search_docs_tool("wind stress bulk formulae Swind")  [FESOM2]
 → get_source_tool("ncar_ocean_fluxes_mode")            [FESOM2]
