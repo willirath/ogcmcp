@@ -16,13 +16,13 @@ Requires Docker and Claude Code or Codex CLI.
 **Claude Code:**
 ```bash
 claude mcp add --transport stdio --scope user mitgcm -- \
-  docker run --rm -i ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.6
+  docker run --rm -i ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.8
 ```
 
 **Codex CLI:**
 ```bash
 codex mcp add mitgcm -- \
-  docker run --rm -i ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.6
+  docker run --rm -i ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.8
 ```
 
 ### FESOM2 MCP server
@@ -30,13 +30,13 @@ codex mcp add mitgcm -- \
 **Claude Code:**
 ```bash
 claude mcp add --transport stdio --scope user fesom2 -- \
-  docker run --rm -i ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.02.6
+  docker run --rm -i ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.02.8
 ```
 
 **Codex CLI:**
 ```bash
 codex mcp add fesom2 -- \
-  docker run --rm -i ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.02.6
+  docker run --rm -i ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.02.8
 ```
 
 Docker pulls the image on first use (~600 MB per image — includes Ollama,
@@ -128,7 +128,7 @@ tool sequence for your task.
 | `get_namelist_structure_tool` | Map of all namelist files → groups |
 | `get_workflow_tool` | Recommended tool sequence for a task |
 
-### FESOM2 — 20 tools
+### FESOM2 — 22 tools
 
 #### Code navigation
 
@@ -149,9 +149,11 @@ tool sequence for your task.
 
 | Tool | What it does |
 |---|---|
-| `search_docs_tool` | Semantic search over FESOM2 RST docs and namelist descriptions |
+| `search_docs_tool` | Semantic search over FESOM2 RST docs, namelist descriptions, visualization READMEs, and src headers |
 | `get_doc_source_tool` | Full text of a doc section |
 | `list_setups_tool` | Reference namelists and CI setup catalogue |
+| `list_forcing_datasets_tool` | Names of available forcing datasets (CORE2, JRA55, ERA5, …) |
+| `get_forcing_spec_tool` | Full spec for a forcing dataset including age_tracer defaults |
 
 #### Domain knowledge + workflow
 
