@@ -140,10 +140,10 @@ ollama serve >/dev/null 2>&1 &
 Cold-start latency is 0.73 s — well under Codex's 10-second default timeout,
 so no `startup_timeout_sec` tuning is needed.
 
-**Install** (once merged and pushed as `mcp-v2026.02.4`):
+**Install** (once merged and pushed as `mitgcm-mcp-v2026.02.4`):
 
 ```bash
-codex mcp add mitgcm -- docker run --rm -i ghcr.io/willirath/ogcmcp:mcp-v2026.02.4
+codex mcp add mitgcm -- docker run --rm -i ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.4
 ```
 
 **Remaining**: add `codex mcp add` install line to README and `docs/mcp-server.md`

@@ -13,7 +13,7 @@ each MCP server. Each agent starts fresh with no prior context.
 ```bash
 # MITgcm MCP server
 claude mcp add --transport stdio --scope user mitgcm -- \
-  docker run --rm -i ghcr.io/willirath/ogcmcp:mcp-v2026.02.6
+  docker run --rm -i ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.6
 
 # FESOM2 MCP server
 claude mcp add --transport stdio --scope user fesom2 -- \
@@ -25,7 +25,7 @@ Both servers start automatically when a tool is first called.
 
 ---
 
-## Part A — MITgcm MCP server (`mcp-v2026.02.6`)
+## Part A — MITgcm MCP server (`mitgcm-mcp-v2026.02.6`)
 
 ### A1. Tool discovery
 
@@ -266,13 +266,13 @@ Both servers start automatically when a tool is first called.
 
 ## Part C — Runtime images
 
-### C1. MITgcm runtime (`runtime-v2026.02.6`)
+### C1. MITgcm runtime (`mitgcm-runtime-v2026.02.6`)
 
 This image is used as a build base for experiment Dockerfiles, not run directly.
 Verify it is pullable and contains MITgcm source:
 
 ```bash
-docker run --rm ghcr.io/willirath/ogcmcp:runtime-v2026.02.6 \
+docker run --rm ghcr.io/willirath/ogcmcp:mitgcm-runtime-v2026.02.6 \
   ls /MITgcm/model/src/ | head -5
 ```
 
@@ -280,12 +280,12 @@ docker run --rm ghcr.io/willirath/ogcmcp:runtime-v2026.02.6 \
 
 ---
 
-### C2. FESOM2 runtime (`fesom2-v2026.02.6`)
+### C2. FESOM2 runtime (`fesom2-runtime-v2026.02.6`)
 
 Verify the image is pullable and the FESOM2 binary exists:
 
 ```bash
-docker run --rm ghcr.io/willirath/ogcmcp:fesom2-v2026.02.6 \
+docker run --rm ghcr.io/willirath/ogcmcp:fesom2-runtime-v2026.02.6 \
   fesom.x --help 2>&1 | head -3
 ```
 

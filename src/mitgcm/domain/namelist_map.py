@@ -13,7 +13,7 @@ one-line generic description computed from the group name.
 import re
 from pathlib import Path
 
-DB_PATH = Path("data/index.duckdb")
+DB_PATH = Path("data/mitgcm/index.duckdb")
 
 # ---------------------------------------------------------------------------
 # Explicit entries: non-obvious file mappings and/or detailed descriptions.

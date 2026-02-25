@@ -24,19 +24,18 @@ running experiments) and the MCP image (MCP server with pre-built indices).
 ## Versioning
 
 CalVer: `vYYYY.MM.MICRO` (MICRO resets each month).
-FESOM2 images use the same tag scheme as MITgcm images but with a
-`fesom2-` prefix on the tag:
+FESOM2 images follow the consistent tag scheme:
 
 | Purpose | Tag pattern |
 |---|---|
-| FESOM2 runtime image | `fesom2-vYYYY.MM.MICRO` |
+| FESOM2 runtime image | `fesom2-runtime-vYYYY.MM.MICRO` |
 | FESOM2 MCP image | `fesom2-mcp-vYYYY.MM.MICRO` |
 
 ---
 
 ## 1. Build and push the FESOM2 runtime image (multi-arch)
 
-The runtime image (`ghcr.io/willirath/ogcmcp:fesom2-*`) contains the
+The runtime image (`ghcr.io/willirath/ogcmcp:fesom2-runtime-*`) contains the
 FESOM2 binary compiled from the submodule source. Agents and users mount
 mesh, input, and output directories at runtime.
 
@@ -44,8 +43,8 @@ mesh, input, and output directories at runtime.
 VERSION=v2026.02.6
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
-  -t ghcr.io/willirath/ogcmcp:fesom2-${VERSION} \
-  -t ghcr.io/willirath/ogcmcp:fesom2-latest \
+  -t ghcr.io/willirath/ogcmcp:fesom2-runtime-${VERSION} \
+  -t ghcr.io/willirath/ogcmcp:fesom2-runtime-latest \
   -f docker/fesom2/Dockerfile \
   --push .
 ```
@@ -145,5 +144,5 @@ git push origin ${VERSION}
 
 | Image tag prefix | Purpose | Base | Approx. size |
 |---|---|---|---|
-| `ghcr.io/willirath/ogcmcp:fesom2-*` | FESOM2 runtime (experiment execution) | `debian:bookworm-slim` | ~1.4 GB |
+| `ghcr.io/willirath/ogcmcp:fesom2-runtime-*` | FESOM2 runtime (experiment execution) | `debian:bookworm-slim` | ~1.4 GB |
 | `ghcr.io/willirath/ogcmcp:fesom2-mcp-*` | FESOM2 MCP server (Claude Code integration) | `python:3.13-slim` | ~600 MB |

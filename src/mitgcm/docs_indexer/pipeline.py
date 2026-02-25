@@ -4,7 +4,7 @@ Run as:
     pixi run embed-docs
 
 The collection 'mitgcm_docs' is created in the same ChromaDB path as the
-subroutines collection (data/chroma).
+subroutines collection (data/mitgcm/chroma).
 """
 
 import logging

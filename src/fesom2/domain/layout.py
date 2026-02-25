@@ -45,7 +45,7 @@ _LAYOUT = {
             "  -v $EXP/mesh:/mesh:ro \\\n"
             "  -v $EXP/input:/input:ro \\\n"
             "  -v $EXP/output:/output \\\n"
-            "  ghcr.io/willirath/ogcmcp:fesom2-latest"
+            "  ghcr.io/willirath/ogcmcp:fesom2-runtime-latest"
         ),
         "mounts": {
             "/mesh (ro)": "mesh files: nod2d.out, elem2d.out, aux3d.out, dist_N/, windstress.out, ...",

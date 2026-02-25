@@ -16,12 +16,12 @@ Requires Docker and Claude Code or Codex CLI.
 **Claude Code:**
 ```bash
 claude mcp add --transport stdio --scope user mitgcm -- \
-  docker run --rm -i ghcr.io/willirath/ogcmcp:mcp-v2026.02.5
+  docker run --rm -i ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.5
 ```
 
 **Codex CLI:**
 ```bash
-codex mcp add mitgcm -- docker run --rm -i ghcr.io/willirath/ogcmcp:mcp-v2026.02.5
+codex mcp add mitgcm -- docker run --rm -i ghcr.io/willirath/ogcmcp:mitgcm-mcp-v2026.02.5
 ```
 
 ### FESOM2 MCP server

@@ -3,7 +3,7 @@
 import chromadb
 from pathlib import Path
 
-CHROMA_PATH = Path("data/chroma")
+CHROMA_PATH = Path("data/mitgcm/chroma")
 COLLECTION_NAME = "subroutines"
 DOCS_COLLECTION_NAME = "mitgcm_docs"
 VERIFICATION_COLLECTION_NAME = "mitgcm_verification"

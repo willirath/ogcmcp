@@ -87,9 +87,9 @@ Four images, two per backend:
 
 | Image | Tag prefix | Purpose |
 |---|---|---|
-| MITgcm runtime | `ghcr.io/willirath/ogcmcp:runtime-*` | Build environment for experiment Dockerfiles |
-| MITgcm MCP | `ghcr.io/willirath/ogcmcp:mcp-*` | Self-contained MCP server (Ollama + indices baked in) |
-| FESOM2 runtime | `ghcr.io/willirath/ogcmcp:fesom2-*` | Run toy/real experiments via Docker mounts |
+| MITgcm runtime | `ghcr.io/willirath/ogcmcp:mitgcm-runtime-*` | Build environment for experiment Dockerfiles |
+| MITgcm MCP | `ghcr.io/willirath/ogcmcp:mitgcm-mcp-*` | Self-contained MCP server (Ollama + indices baked in) |
+| FESOM2 runtime | `ghcr.io/willirath/ogcmcp:fesom2-runtime-*` | Run toy/real experiments via Docker mounts |
 | FESOM2 MCP | `ghcr.io/willirath/ogcmcp:fesom2-mcp-*` | Self-contained MCP server for FESOM2 |
 
 ---

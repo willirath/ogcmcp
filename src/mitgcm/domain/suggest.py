@@ -6,7 +6,7 @@ two canonical experiment types:
 - baroclinic_instability : Eady-like setup with stratified initial conditions
 """
 
-_RUNTIME_IMAGE = "ghcr.io/willirath/ogcmcp:runtime-latest"
+_RUNTIME_IMAGE = "ghcr.io/willirath/ogcmcp:mitgcm-runtime-latest"
 
 # Two explicit Dockerfiles — one per target platform.
 # Do not use a runtime uname/dpkg switch: cross-build contexts require the
