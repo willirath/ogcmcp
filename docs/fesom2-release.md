@@ -41,7 +41,7 @@ FESOM2 binary compiled from the submodule source. Agents and users mount
 mesh, input, and output directories at runtime.
 
 ```bash
-VERSION=v2026.03.1
+VERSION=v2026.02.6
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   -t ghcr.io/willirath/ogcmcp:fesom2-${VERSION} \
@@ -61,7 +61,7 @@ the embedding model, Python runtime, and the pre-built FESOM2 indices
 from `data/fesom2/`.
 
 ```bash
-VERSION=v2026.03.1
+VERSION=v2026.02.6
 docker buildx build \
   --platform linux/amd64,linux/arm64 \
   -t ghcr.io/willirath/ogcmcp:fesom2-mcp-${VERSION} \
@@ -92,7 +92,7 @@ Change visibility → Public (if not already set from MITgcm MCP release).
 ## 3. Create the GitHub release
 
 ```bash
-VERSION=v2026.03.1
+VERSION=v2026.02.6
 gh release create ${VERSION} \
   --title "OGCMCP FESOM2 ${VERSION}" \
   --notes "FESOM2 MCP image: \`ghcr.io/willirath/ogcmcp:fesom2-mcp-${VERSION}\`
@@ -114,10 +114,10 @@ FESOM2 source: submodule pinned at \`1b58e7f\`."
 On a clean machine (or after removing the local image):
 
 ```bash
-docker rmi ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.03.1 2>/dev/null || true
+docker rmi ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.02.6 2>/dev/null || true
 
 claude mcp add --transport stdio --scope user fesom2 -- \
-  docker run --rm -i ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.03.1
+  docker run --rm -i ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.02.6
 ```
 
 Then in a Claude Code session:
@@ -134,7 +134,7 @@ Expected: `namelist_to_code_tool` returns a result referencing `K_GM` in
 ## 5. Git tag
 
 ```bash
-VERSION=v2026.03.1
+VERSION=v2026.02.6
 git tag -a ${VERSION} -m "Release ${VERSION}"
 git push origin ${VERSION}
 ```

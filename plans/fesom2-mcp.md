@@ -360,7 +360,7 @@ _Feedback:_
 - [ ] Multi-arch buildx push to GHCR
 - [x] `docs/fesom2-release.md` written
 - [ ] Smoke test on clean machine
-- Done when: `docker run --rm -i ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.03.1`
+- Done when: `docker run --rm -i ghcr.io/willirath/ogcmcp:fesom2-mcp-v2026.02.6`
   answers "What controls GM diffusivity?" correctly
 
 _Feedback:_
